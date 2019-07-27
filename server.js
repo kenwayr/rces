@@ -133,6 +133,7 @@ messageController.AddControl("verify.request", {
                 },
                 template: message
             })
+            Logger.Info("OTP for " + id + " is " + otp)
         } else if(message.data.type === "faculty") {
             var id = clients.faculty.GetIdentifier(connection)
             var record = clients.faculty.GetRecord(id)
