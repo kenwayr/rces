@@ -8,5 +8,15 @@
 </head>
 <body>
     Hello World!
+    <script>
+        const config = {
+            host: location.hostname,
+            port: location.port
+        }
+        var ws = new WebSocket('ws://' + config.host + ':' + config.port)
+        ws.onopen = () => {
+            ws.send('Hello World!');
+        };
+    </script>
 </body>
 </html>
