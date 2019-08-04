@@ -1,0 +1,772 @@
+<link rel="stylesheet" type="text/css" href="../commons/stylesheets/select/select2.min.css">
+<style type="text/css">
+.room-container
+{
+	display: block;
+}
+.room-header
+{
+	display: block;
+	font-weight: 700;
+	line-height: 1.4em;
+}
+.room-info
+{
+	display: inline-block;
+	font-size: 8pt;
+}
+.room-info > .field
+{
+	text-transform: uppercase;
+	color: #000;
+}
+.room-info > .field::after
+{
+	content: '-';
+}
+.hidden
+{
+	display: none;
+}
+.class-grid
+{
+    position: relative;
+    display: block;
+    margin: 0 auto;
+    height: auto;
+    padding: 5px;
+    user-select: none;
+}
+.class-grid > .grid-cell
+{
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    margin: 5px;
+    border-radius: 30px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 2.4em;
+    cursor: pointer;
+}
+.class-grid > .grid-cell > .unoccupied
+{
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	background-image: url(../commons/images/seat.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+.class-grid > .grid-cell.alert-doubt
+{
+	animation: animationDoubt 5s ease-out;
+}
+
+.class-grid > .grid-cell.alert-not-understood
+{
+	animation: animationNotUnderstood 5s ease-out;
+}
+
+.class-grid > .grid-cell.alert-please-repeat
+{
+	animation: animationPleaseRepeat 5s ease-out;
+}
+
+.legend
+{
+	display: block;
+	width: 100%;
+	text-align: center;
+}
+
+.legend > .key
+{
+	display: inline-block;
+	margin: 10px auto;
+	padding: 10px;
+	border: 1px solid #E4E4E4;
+	border-radius: 5px;
+	background-color: #fff;
+}
+
+.legend > .key > .indicator
+{
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	border-radius: 20px;
+	margin: 5px;
+	vertical-align: middle;
+}
+.legend > .key > .header
+{
+	vertical-align: middle;
+	font-size: 14pt;
+}
+.legend > .key > .count
+{
+	display: block;
+	font-size: 12pt;
+	font-weight: bolder;
+}
+
+@keyframes animationDoubt
+{
+	from{ background-color: rgba(255, 237, 147, 0.8); }
+	to { background-color: transparent; }
+}
+
+@keyframes animationNotUnderstood
+{
+	from{ background-color: rgba(220, 53, 69, 0.8); }
+	to { background-color: transparent; }
+}
+
+@keyframes animationPleaseRepeat
+{
+	from{ background-color: rgba(147, 192, 255, 0.8); }
+	to { background-color: transparent; }
+}
+</style>
+<div class="">
+	<div class="page-title">
+		<div class="title_left">
+			<h3>Dashboard</h3>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<div class="row">
+	<div id="initForm" class="col-md-12 col-sm-12 col-xs-12">
+		<div class="x_panel">
+			<div class="x_title">
+				<h2>Classroom <small>start a class</small></h2>
+				<ul class="nav navbar-right panel_toolbox">
+					<li><a class="collapse-link"><i class="fas fa-chevron-up"></i></a>
+					</li>
+					
+				</ul>
+				<div class="clearfix"></div>
+			</div>
+			<div class="x_content">
+				<div class="form-group">
+                    <label class="control-label col-md-3 col-sm-3 col-xs-12">Select Course</label>
+                    <div class="col-md-9 col-sm-9 col-xs-12">
+                        <select id="courseSelect" class="select2 form-control" tabindex="-1" style="display: none;">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-md-3 col-sm-3 col-xs-12">Select Room</label>
+                    <div class="col-md-9 col-sm-9 col-xs-12">
+                        <select id="roomSelect" class="select2 form-control" tabindex="-1" style="display: none;">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                	<button id="initSession" class="btn btn-primary">START CLASS</button>
+                </div>
+			</div>
+		</div>
+	</div>
+	<div id="mainDashboard" class="col-md-12 col-sm-12 col-xs-12 hidden">
+		<div class="x_panel">
+			<div class="x_title">
+				<h2>Classroom <small>manage class</small></h2>
+				<ul class="nav navbar-right panel_toolbox">
+					<li><a class="collapse-link"><i class="fas fa-chevron-up"></i></a>
+					</li>
+					
+				</ul>
+				<div class="clearfix"></div>
+			</div>
+			<div class="x_content">
+				<div class="row">
+					<div class="col-md-5">
+						<div class="row">
+							<span data-var="activeCourseName"></span>
+							(<span data-var="activeCourseCode"></span>)
+						</div>
+						<div class="row">
+							Room Code: <span data-var="activeRoom"></span>
+						</div>
+						<div class="timer row">
+							Class Time: 
+							<span class="timer-hrs">00</span>
+							:
+							<span class="timer-mins">00</span>
+							:
+							<span class="timer-secs">00</span>
+						</div>
+					</div>
+					<div class="col-md-5 col-md-offset-2">
+						<button id="endSession" class="btn btn-dark pull-right">End Session</button>
+					</div>
+				</div>
+				<div id="wave-mic"></div>
+
+				<div id="waveform">
+					<div id="wave-timeline"></div>
+				</div>
+				<button id="toggleRecording" class="btn btn-danger">
+					<i class="fas fa-microphone"></i>
+					/
+					<i class="fas fa-microphone-slash"></i>
+				</button>
+				<button id="togglePlayWaveRecord" class="btn btn-primary">
+					<i class="fas fa-play"></i>
+					/
+					<i class="fas fa-pause"></i>
+				</button>
+
+				<div class="legend">
+					<div class="key">
+						<span class="indicator" style="background-color: #ffc107;"></span>
+						<span class="header">DOUBT</span>
+						<span data-var="doubtCount" class="count">0</span>
+					</div>
+					<div class="key">
+						<span class="indicator" style="background-color: #dc3545;"></span>
+						<span class="header">EXPLAIN</span>
+						<span data-var="explainCount" class="count">0</span>
+					</div>
+					<div class="key">
+						<span class="indicator" style="background-color: #007bff;"></span>
+						<span class="header">REPEAT</span>
+						<span data-var="repeatCount" class="count">0</span>
+					</div>
+					<div class="key">
+						<span class="indicator">
+							<i class="fas fa-pause"></i>
+						</span>
+						<span class="header">Total Pause Time</span>
+						<span data-var="totalPauseTime" class="count">0</span>
+					</div>
+				</div>
+
+				<div class="row">
+					<div style="overflow: auto; max-width: 100%;">
+						<div style="width: 100%; text-align: center;"><i class="fas fa-chalkboard-teacher fa-3x"></i></div>
+						<div id="classroomLayout" class="class-grid"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript" src="../commons/scripts/select/select2.full.js"></script>
+<script type="text/javascript" src="../commons/scripts/wavesurfer/wavesurfer.min.js"></script>
+<script type="text/javascript" src="../commons/scripts/wavesurfer/wavesurfer.microphone.min.js"></script>
+<script type="text/javascript" src="../commons/scripts/wavesurfer/wavesurfer.timeline.js"></script>
+<script type="text/javascript" src="../commons/scripts/wavesurfer/wavesurfer.regions.js"></script>
+<script type="text/javascript" src="../commons/scripts/wavesurfer/wavesurfer.minimap.js"></script>
+<script type="text/javascript">
+function MakeGrid(elm, stateMatrix) {
+    var list = '';
+    stateMatrix = stateMatrix.filter((v) => {
+    	if(v.filter((x) => {
+    		return x > 0;
+    	}).length === 0)
+    		return false;
+    	return true;
+    });
+    var prevState = stateMatrix;
+    var m = stateMatrix.length, n = stateMatrix[0].length;
+    for(var i=0; i < m; i++) {
+        for(var j=0; j < n; j++) {
+            list += '<div data-row="' + i + '" data-col="' + j + '" data-selected="' + (prevState === null ? 0 : prevState[i][j]) + '" class="grid-cell">' +
+            	(prevState[i][j] == 1 ?'<i class="unoccupied"></i>': '') +
+            	'</div>';
+        }
+    }
+    $(elm).html(list);
+    var cellWidth = parseFloat($(".grid-cell").css('width'));
+    var cellMargin = parseFloat($(".grid-cell").css('margin'));
+    var computedWidth = (cellWidth + cellMargin*2 )*n;
+    $(elm).width(computedWidth);
+    $(".grid-cell").on('click', function(e) {
+        $(this).trigger('action');
+    });
+}
+
+function UpdateClassroomLayoutGrid(elm, this_room, students) {
+	setTimeout(function () {
+		_UpdateClassroomLayoutGrid(elm, this_room, students);
+	}, 0);
+}
+function _UpdateClassroomLayoutGrid(elm, this_room, students) {
+	$(elm + ' > div.grid-cell').each(function () {
+		if($(this).find('i').length > 0)
+			$(this).html('<i class="unoccupied"></i>');
+	});
+
+	for(var i=0; i < students.length; i++) {
+		if(students[i].seat !== null) {
+			var data = students[i].seat.split("-");
+			var room = data[0], row = data[1], col = data[2];
+			if(room === this_room)
+				$(elm + ' > div.grid-cell[data-row="' + row + '"][data-col="' + col + '"]').html(
+					'<i class="fas fa-mobile-alt fa-fw fa-lg"></i>'
+				);
+		}
+	}
+}
+</script>
+<script type="text/javascript">
+	var courses;
+	var session;
+	var pauseTime;
+	$(document).ready(function() {
+		if(app !== null)
+		{
+			if(app.connection.active_course !== null)
+			{
+				app.send(
+					{
+						tag: "request.get",
+						type: "courses",
+						data: {}
+					},
+					function (response) {
+						courses = response.data.courses;
+						InitSession(app.connection.active_course, app.connection.active_room);
+					}
+				);
+			}
+			else
+			{
+				app.send(
+					{
+						tag: "request.get",
+						type: "courses",
+						data: {}
+					},
+					function (response) {
+						courses = response.data.courses;
+						RenderCourseSelect(courses)
+					}
+				);
+
+				RenderRoomSelect(app.rooms);
+			}
+		}
+
+		$("#initSession").click(function () {
+			$(this).attr('disabled', 'disabled');
+			var course = $("#courseSelect").find(':selected').val();
+			var courseName = $("#courseSelect").find(':selected').text();
+			var room = $("#roomSelect").find(':selected').val();
+			app.send(
+				{
+					tag: "request.set",
+					type: "start.class",
+					data: {
+						course_code: course,
+						room_id: room
+					}
+				},
+				function (response) {
+					console.log(response);
+					if(!response.hasOwnProperty('error') || response.error === 0)
+					{
+						InitSession(course, room);
+					}
+					$("#initSession").removeAttr('disabled');
+				}
+			);
+		});
+
+		$("#endSession").click(function () {
+			console.log("ENDING SESSION!");
+			var room = app.connection.active_room;
+			app.send(
+				{
+					tag: "request.set",
+					type: "stop.class",
+					data: {
+						room_id: room
+					}
+				},
+				function (response) {
+					EndSession();
+					app.connection.active_course = null;
+					app.connection.active_room = null;
+					app.send(
+						{
+							tag: "request.get",
+							type: "courses",
+							data: {}
+						},
+						function (response) {
+							RenderCourseSelect(response.data)
+						}
+					);
+
+					RenderRoomSelect(app.rooms);
+				}
+			);
+		});
+	});
+
+	function InitSession(course, room) {
+		$("#initForm").addClass('hidden');
+		$("#mainDashboard").removeClass('hidden');
+		if(app.connection.active_course === null)
+			app.connection.active_course = course;
+		if(app.connection.active_room === null)
+			app.connection.active_room = room;
+		var courseName = courses[courses.findIndex((v) => v.code === course)].title;
+		var seatMatrix = app.rooms.filter((v) => {return v.room_id === room; })[0].seat_matrix;
+		SetVariable('activeCourseName', courseName);
+		SetVariable('activeCourseCode', course);
+		SetVariable('activeRoom', app.connection.active_room);
+		MakeGrid('#classroomLayout', seatMatrix);
+		UpdateClassroomLayoutGrid('#classroomLayout', app.connection.active_room, app.students);
+
+		// session intialization
+		pauseTime = 0;
+		session = new SessionAnalytics();
+		session.statics.studentEventLogs = [];
+		session.statics.overview = {
+			doubtCount: 0,
+			explainCount: 0,
+			repeatCount: 0
+		};
+		session.variables.pauseTime = 0;
+		session.statics.course = {
+			code: app.connection.active_course,
+			title: courseName
+		};
+		session.statics.room = {
+			id: app.connection.active_room,
+			seat_matrix: seatMatrix
+		};
+		session.statics.duration = {
+			start: Date.now(),
+			end: null
+		};
+
+		StartMicrophone();
+		app.addCallback('students', function () {
+			UpdateClassroomLayoutGrid('#classroomLayout', app.connection.active_room, app.students);
+		});
+		app.addCallback('event.students', function (event) {
+			var studentIndex = app.students.findIndex((v) => v.device_id === event.device_id);
+			if(studentIndex !== -1)
+			{
+				var seat = app.students[studentIndex].seat.split("-");
+				if(
+					app.connection.active_room === seat[0]
+					&&
+					session.statics.studentEventLogs.findIndex((v) => v.timestamp === event.timestamp && v.device_id === event.device_id) === -1)
+				{
+					var gridCell = $('#classroomLayout > .grid-cell[data-row="' + seat[1] + '"][data-col="' + seat[2] + '"]');
+					gridCell.removeClass("alert-doubt alert-not-understood alert-please-repeat");
+					if(event.code === SERVER_EVENTS.STUDENT_HAVE_DOUBT) {
+						gridCell.addClass('alert-doubt');
+						session.statics.studentEventLogs.push({
+		            		timestamp: event.timestamp,
+		            		type: 'doubt',
+		            		device_id: event.device_id,
+		            		seat: {
+		            			row: seat[1],
+		            			col: seat[2]
+		            		}
+		            	});
+		            	session.statics.overview.doubtCount += 1;
+		            	SetVariable('doubtCount', session.statics.overview.doubtCount);
+					}
+					else if(event.code === SERVER_EVENTS.STUDENT_DID_NOT_UNDERSTAND) {
+						gridCell.addClass('alert-not-understood');
+						session.statics.studentEventLogs.push({
+		            		timestamp: event.timestamp,
+		            		type: 'explain',
+		            		device_id: event.device_id,
+		            		seat: {
+		            			row: seat[1],
+		            			col: seat[2]
+		            		}
+		            	});
+		            	session.statics.overview.explainCount += 1;
+		            	SetVariable('explainCount', session.statics.overview.explainCount);
+					}
+					else if(event.code === SERVER_EVENTS.STUDENT_PLEASE_REPEAT) {
+						gridCell.addClass('alert-please-repeat');
+						session.statics.studentEventLogs.push({
+		            		timestamp: event.timestamp,
+		            		type: 'repeat',
+		            		device_id: event.device_id,
+		            		seat: {
+		            			row: seat[1],
+		            			col: seat[2]
+		            		}
+		            	});
+		            	session.statics.overview.repeatCount += 1;
+		            	SetVariable('repeatCount', session.statics.overview.repeatCount);
+					}
+					else if(event.code === SERVER_EVENTS.STUDENT_CUSTOM) {
+						gridCell.addClass('alert-custom');
+					}
+				}
+			}
+		});
+	}
+
+	function RenderCourseSelect(courses) {
+		var data = [];
+		for(var i=0; i < courses.length; i++) {
+			data.push({ "id": courses[i].code, "text": courses[i].title});
+		}
+		$("#courseSelect").select2({
+			data: data
+		});
+	}
+
+	function RenderRoomSelect(rooms) {
+		var data = [];
+		for(var i=0; i < rooms.length; i++) {
+			if(rooms[i].availability === true && rooms[i].usage.inUse === false)
+				data.push({
+					"id": rooms[i].room_id,
+					text: "<div class=\"room-container\">\
+								<span class=\"room-header\">" + rooms[i].room_id + "</span>\
+								<div class=\"room-info\">\
+									<span class=\"field\">Capacity</span><span class=\"value\">" + rooms[i].capacity + "</span>\
+								</div>\
+							</div>"})
+		}
+		$("#roomSelect").select2({
+			data: data
+		});
+	}
+
+	function StartMicrophone() {
+		'use strict';
+		var startTime = Date.now();
+
+		(function () {
+			function pad(n, width, z) {
+			  z = z || '0';
+			  n = n + '';
+			  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+			}
+			var hrs = $(".timer-hrs");
+			var mins = $(".timer-mins");
+			var secs = $(".timer-secs");
+			function updateTimer() {
+				var time = (Date.now() - startTime)/1000;
+				hrs.text(pad(parseInt(time / 3600),2));
+				mins.text(pad(parseInt((time % 3600) / 60),2));
+				secs.text(pad(parseInt(time % 60),2));
+			}
+			var timer = setInterval(updateTimer, 1000);
+		})();
+		session.statics.studentEventLogs = [];
+		var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+		var wavesurferMic, wavesurferTimeline, context, processor;
+		if (wavesurferMic === undefined) {
+            if (isSafari) {
+                // Safari 11 or newer automatically suspends new AudioContext's that aren't
+                // created in response to a user-gesture, like a click or tap, so create one
+                // here (inc. the script processor)
+                var AudioContext =
+                    window.AudioContext || window.webkitAudioContext;
+                context = new AudioContext();
+                processor = context.createScriptProcessor(1024, 1, 1);
+            }
+
+            // Init wavesurfer
+            wavesurferMic = WaveSurfer.create({
+                container: '#wave-mic',
+                waveColor: 'green',
+                interact: false,
+                cursorWidth: 0,
+                audioContext: context || null,
+                audioScriptProcessor: processor || null,
+                plugins: [
+                	WaveSurfer.microphone.create()
+                ]
+            });
+
+            window.wavesurferMic = wavesurferMic;
+
+		    $("#togglePlayWaveRecord").click(function () {
+		    	wavesurferTimeline.playPause();
+		    });
+
+		    var chunks = [], mediaRecorder;
+
+		    window.wavesurferTimeline = wavesurferTimeline;
+		    window.mediaRecChunks = chunks;
+
+            wavesurferMic.microphone.on('deviceReady', function(stream) {
+                console.info('Device ready!');
+                mediaRecorder = new MediaRecorder(stream);
+			    mediaRecorder.ondataavailable = function(be) {
+			      chunks.push(be.data);
+			    };
+			    mediaRecorder.onstop = function() {
+				    var blob = new Blob(chunks, {type: chunks[0].type});
+				    session.statics.mediaRecBlob = blob;
+				    var regions = ComputeRegions(startTime, session.statics.studentEventLogs);
+				    if(wavesurferTimeline !== undefined)
+				    	wavesurferTimeline.destroy();
+					wavesurferTimeline = WaveSurfer.create({
+						container: document.querySelector('#waveform'),
+				        waveColor: '#A8DBA8',
+				        progressColor: '#3B8686',
+						plugins: [
+						    WaveSurfer.regions.create({
+						        container: '#wave-timeline',
+						        regions: regions
+						    })
+						]
+					});
+					wavesurferTimeline.loadBlob(blob);
+			    };
+			    window.mediaRecorder = mediaRecorder;
+			    mediaRecorder.start();
+			    $("#togglePlayWaveRecord").attr('disabled', 'disabled');
+            });
+            wavesurferMic.microphone.on('deviceError', function(code) {
+                console.warn('Device error: ' + code);
+                mediaRecorder.stop();
+                $("#wave-mic").addClass('hidden');
+                $('#waveform').removeClass('hidden');
+                $("#togglePlayWaveRecord").removeAttr('disabled');
+            });
+            wavesurferMic.microphone.start();
+
+            $("#toggleRecording").click(function () {
+            	if (wavesurferMic.microphone.active) {
+	                // microphone switched off
+	                wavesurferMic.microphone.stop();
+	                $("#wave-mic").addClass('hidden');
+	                $('#waveform').removeClass('hidden');
+	                mediaRecorder.stop();
+	                $("#togglePlayWaveRecord").removeAttr('disabled');
+	                pauseTime = Date.now();
+	            } else {
+	            	// microphone switched on
+	                wavesurferMic.microphone.start();
+	                $("#wave-mic").removeClass('hidden');
+	                $('#waveform').addClass('hidden');
+	                mediaRecorder.start();
+	                $("#togglePlayWaveRecord").attr('disabled', 'disabled');
+	                session.variables.pauseTime += Date.now() - pauseTime;
+	                var displayPauseTime = new Date(session.variables.pauseTime);
+	                SetVariable('totalPauseTime', displayPauseTime.format('u:q:z'));
+	            }
+            });
+        }
+	}
+
+	function EndSession() {
+		$("#initForm").removeClass('hidden');
+		$("#mainDashboard").addClass('hidden');
+		
+		if(window.wavesurferMic !== undefined) {
+			if(!window.wavesurferMic.microphone.active)
+				session.statics.overview.pauseTime += Date.now();
+			window.wavesurferMic.destroy();
+		}
+		if(window.wavesurferTimeline !== undefined) {
+			window.wavesurferTimeline.destroy();
+		}
+
+		window.mediaRecorder.onstop = function () {
+			var blob = new Blob(window.mediaRecChunks, {type: window.mediaRecChunks[0].type});
+			session.statics.mediaRecBlob = blob;
+
+			session.statics.duration.end = Date.now();
+
+			var session_raw_data = session.export();
+			var session_data = new SessionData();
+			session_data.ConstructFromRawSA(session_raw_data, function (data) {
+				var json = JSON.stringify(data);
+				app.send(
+					{
+						tag: "request.set",
+						type: "upload",
+						data: {
+							type: "application/json",
+							checksum: json.hashCode()
+						}
+					},
+					function (response) {
+						console.log(response);
+						var token = response.data.token;
+						$.ajax({
+							url: 'http://localhost:1337/upload',
+							type: 'POST',
+							data: JSON.stringify({binaryData: json, type: 'application/json', mimeType: 'application/json', token: token}),
+							success: function (response) {
+								response = JSON.parse(response);
+								console.log(response);
+								if(response.success === true)
+								{
+									app.send(
+										{
+											tag: "request.set",
+											type: "update.profile",
+											data: {
+												type: "faculty",
+												update: {
+													username: app.connection.username,
+													pushData: {
+														sessions: {
+															resource_id: response.resource_id,
+															course: data.course,
+															room: data.room.id,
+															date: new Date().toDateString()
+														}
+													}
+												}
+											}
+										},
+										function (response) {
+											console.log(response);
+										}
+									);
+								}
+							}
+						});
+					}
+				);
+			});
+		};
+
+		window.mediaRecorder.stop();
+	}
+
+	function ComputeRegions(sessionStartTime, eventLogs) {
+		var colorCodes  = {
+			doubt: 'hsla(58, 89%, 61%, 0.8)',
+			repeat: 'hsla(200, 50%, 70%, 0.4)',
+			explain: 'hsla(2, 89%, 61%, 0.8)',
+			default: 'hsla(0, 0%, 90%, 0.9)'
+		};
+
+		var allowedTimeFrameInSecs = 5;
+
+		var regions = [];
+		for(var i=0; i < eventLogs.length; i++) {
+			var time = (eventLogs[i].timestamp - sessionStartTime) / 1000; //divided time diff by 1000 to convert to seconds
+			var approx = regions.findIndex((v) => { return Math.abs(v.start - time) < allowedTimeFrameInSecs; });
+			if(approx !== -1)
+			{
+				// add some countings later
+			}
+			else
+			{
+				regions.push({
+					start: parseInt(time),
+					end: parseInt(time + allowedTimeFrameInSecs),
+					color: colorCodes[eventLogs[i].type] || colorCodes.default
+				});
+			}
+		}
+		return regions;
+	}
+</script>

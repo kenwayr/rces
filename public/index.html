@@ -7,7 +7,10 @@
     <title>Hello World - Heroku</title>
 </head>
 <body>
-    Hello World!
+    <div id="app">
+        {{message}}
+    </div>
+    <script src="./js/vue.js"></script>
     <script>
         const config = {
             host: location.hostname,
@@ -17,6 +20,14 @@
         ws.onopen = () => {
             ws.send('Hello World!');
         };
+    </script>
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                message: "Hello World!"
+            }
+        })
     </script>
 </body>
 </html>

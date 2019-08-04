@@ -1,0 +1,79 @@
+<div class="col-md-12">
+    <div class="x_panel">
+        <div class="x_content">
+            <div class="clearfix"></div>
+            <div id="facultyProfileContainer" class="row"></div>
+        </div>
+    </div>
+</div>
+
+<div id="profileTemplate" class="hidden">
+    <div class="col-md-4 col-sm-4 col-xs-12 animated fadeInDown">
+        <div class="well profile_view">
+            <div class="col-sm-12">
+                <h4 class="brief">
+                    <i>{{designation}}</i>
+                    <span class="badge badge-active">{{active}}</span>
+                </h4>
+                <div class="left col-xs-7">
+                    <h2>{{name}}</h2>
+                    <p><strong>Username: </strong> {{username}} </p>
+                    <ul class="list-unstyled">
+                        <li><i class="fa fa-phone"></i> {{phone}} </li>
+                        <li><i class="fa fa-envelope"></i> {{email}}</li>
+                    </ul>
+                </div>
+                <div class="right col-xs-5 text-center">
+                    <img src="../commons/images/user.png" alt="" class="img-circle img-responsive">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function (){
+    if(app !== null)
+    {
+        UpdateView();
+        app.addCallback('faculties', function(d) {
+            UpdateView();
+        });
+    }
+});
+
+function UpdateView() {
+    app.send(
+            {
+                tag: "request.get",
+                type: "profiles",
+                data: {
+                    type: "faculty"
+                }
+            },
+            function (message) {
+                console.log(message);
+                if(message.data.hasOwnProperty('profiles'))
+                    UpdateProfilesView(message.data.profiles);
+            }
+        );
+}
+
+function UpdateProfilesView(profiles) {
+    var template = $("#profileTemplate").html(), profileView;
+    $("#facultyProfileContainer").html('');
+    for(var i=0; i < profiles.length; i++)
+    {
+        profileView = template.replace("{{designation}}", profiles[i].designation || "N/A");
+        profileView = profileView.replace("{{name}}", profiles[i].name || "N/A");
+        profileView = profileView.replace("{{email}}", profiles[i].email || "N/A");
+        profileView = profileView.replace("{{phone}}", profiles[i].phone || "N/A");
+        profileView = profileView.replace("{{username}}", profiles[i].username || "N/A");
+        if(app.faculties.filter((v) => { return v.username == profiles[i].username; }).length > 0)
+            profileView = profileView.replace("{{active}}", "active");
+        else
+            profileView = profileView.replace("{{active}}", "");
+        $("#facultyProfileContainer").append(profileView);
+    }
+}
+</script>

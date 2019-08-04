@@ -1,0 +1,194 @@
+<style type="text/css">
+/* Limit image width to avoid overflow the container */
+#profilePictureUploadInput {
+	max-width: 100%; /* This rule is very important, please do not ignore this! */
+}
+</style>
+<div>
+    <div class="page-title">
+        <div class="title_left">
+            <h3>Settings</h3>
+        </div>
+    </div>
+</div>
+<div class="clearfix"></div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="x_title">
+            	<h2>Basic Profile<small>Change your basic profile settings</small></h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <br>
+                <div class="row">
+                	<div class="col-md-9">
+                		<div class="img-container">
+                			<img id="profilePictureEditor" src="../commons/assets/default.png">
+                		</div>
+                	</div>
+                	<div class="col-md-3 docs-buttons">
+						<label class="btn btn-primary btn-upload" for="profilePictureUploadInput" title="Upload image file">
+							<input id="profilePictureUploadInput" class="sr-only" type="file" accept="image/*">
+							<span class="docs-tooltip" data-toggle="tooltip" title="" data-original-title="Upload new picture">
+								<span><i class="fa fa-upload"></i> Upload</span>
+							</span>
+						</label>
+						<button id="removeProfilePicture" class="btn btn-danger" title="Remove Profile Picture">
+							<span class="docs-tooltip" data-toggle="tooltip" title="" data-original-title="Remove Profile Picture">
+								<span><i class="fa fa-close"></i> Remove</span>
+							</span>
+						</button>
+
+						<button id="rotateProfilePictureL" class="btn btn-primary" title="Rotate Picture Left">
+							<span class="docs-tooltip" data-toggle="tooltip" title="" data-original-title="Rotate Left">
+								<span><i class="fa fa-rotate-left"></i> Rotate L</span>
+							</span>
+						</button>
+						<button id="rotateProfilePictureR" class="btn btn-primary" title="Rotate Picture Right">
+							<span class="docs-tooltip" data-toggle="tooltip" title="" data-original-title="Rotate Right">
+								<span><i class="fa fa-rotate-right"></i> Rotate R</span>
+							</span>
+						</button>
+
+						<button id="zoomProfilePictureIn" class="btn btn-primary" title="Zoom In">
+							<span class="docs-tooltip" data-toggle="tooltip" title="" data-original-title="Zoom In">
+								<span><i class="fa fa-search-plus"></i> Zoom In</span>
+							</span>
+						</button>
+						<button id="zoomProfilePictureOut" class="btn btn-primary" title="Zoom Out">
+							<span class="docs-tooltip" data-toggle="tooltip" title="" data-original-title="Zoom Out">
+								<span><i class="fa fa-search-minus"></i> Zoom Out</span>
+							</span>
+						</button>
+
+						<button id="saveProfilePicture" class="btn btn-success" title="Save Image">
+							<span class="docs-tooltip" data-toggle="tooltip" title="" data-original-title="Save Image">
+								<span><i class="fa fa-save"></i> Save Changes</span>
+							</span>
+						</button>
+		            </div>
+            	</div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        if(app !== null)
+        {
+        	var profilePictureEditor = $("#profilePictureEditor");
+	    	profilePictureEditor.cropper({
+				aspectRatio: 874/1110,
+				crop: function(event) {
+					console.log(event);
+				}
+			});
+        	$("#profilePictureUploadInput").on("change", function () {
+        		var fileURL = $(this).val();
+        		var ext = fileURL.substring(fileURL.lastIndexOf('.') + 1).toLowerCase();
+        		if(this.files && this.files[0])
+        		{
+					var reader = new FileReader();
+					reader.onload = function (e) {
+						profilePictureEditor.cropper('replace', e.target.result);
+					}
+					reader.readAsDataURL(this.files[0]);
+        		}
+        		else
+        		{
+        			profilePictureEditor.cropper('replace', '../commons/assets/default.png');
+        		}
+        	});
+
+        	$("#removeProfilePicture").click(function () {
+        		profilePictureEditor.cropper('replace', '../commons/assets/default.png');
+        	});
+
+        	$("#rotateProfilePictureL").click(function () {
+        		profilePictureEditor.cropper('rotate', -10);
+        	});
+
+        	$("#rotateProfilePictureR").click(function () {
+        		profilePictureEditor.cropper('rotate', 10);
+        	});
+
+        	$("#zoomProfilePictureIn").click(function () {
+        		profilePictureEditor.cropper('zoom', 0.1);
+        	});
+
+        	$("#zoomProfilePictureOut").click(function () {
+        		profilePictureEditor.cropper('zoom', -0.1);
+        	});
+
+        	$("#saveProfilePicture").click(function () {
+        		var fileInput = $("#profilePictureUploadInput")[0];
+        		var fileURL = fileInput.value;
+        		var ext = fileURL.substring(fileURL.lastIndexOf('.') + 1).toLowerCase();
+
+        		if(fileInput.files && fileInput.files[0])
+        		{
+					var reader = new FileReader();
+					reader.onload = function (e) {
+						var data = e.target.result;
+                        var checksum = data.hashCode();
+						app.send({
+		                    tag: "request.set",
+		                    type: "upload",
+		                    data: {
+		                    	checksum: checksum,
+		                    	type: 'image'
+		                    }
+		                }, function (response) {
+                            var token = response.data.token;
+                            $.ajax({
+                                url: 'http://localhost:1337/upload',
+                                type: 'POST',
+                                data: JSON.stringify({binaryData: data, type: 'image', token: token, mimeType: 'image/b64img'}),
+                                success: function (response) {
+                                    response = JSON.parse(response);
+                                    if(response.success === true) {
+                                        console.log(response);
+                                        app.send({
+                                            tag: "request.set",
+                                            type: "update.profile",
+                                            data: {
+                                                type: "faculty",
+                                                update: {
+                                                    username: app.connection.username,
+                                                    setData: {
+                                                        dp_res_id: response.resource_id
+                                                    }
+                                                }
+                                            }
+                                        }, function (response) {
+                                            console.log(response);
+                                            UpdateProfilePicture();
+                                        });
+                                    }
+                                }
+                            });
+		                });
+					}
+					reader.readAsDataURL(fileInput.files[0]);
+        		}
+
+
+        		/*app.send({
+                    tag: "request.set",
+                    type: "upload",
+                    data: {
+                    	binaryData: ,
+                    	type: 
+                    }
+                }, function(res) {
+                    console.log('SAVED!', res);
+                });*/
+        	});
+        }
+    });
+</script>

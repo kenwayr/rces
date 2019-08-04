@@ -1,0 +1,180 @@
+<style type="text/css">
+.dataTables_filter input[type=search] {
+    border-right: 0;
+    box-shadow: inset 0 1px 0px rgba(0, 0, 0, 0.075);
+    border-radius: 25px;
+    padding-left: 20px;
+    border: 1px solid rgba(221, 226, 232, 0.49);
+    cursor: pointer;
+}
+.form-control.inline
+{
+    display: inline-block;
+    width: auto;
+    max-width: 100%;
+}
+.btn-transparent-bg
+{
+	background-color: transparent;
+	border-color: transparent;
+}
+.btn-transparent-bg:active
+{
+	background-image: none;
+	outline: 0;
+}
+</style>
+<div>
+    <div class="page-title">
+        <div class="title_left">
+            <h3>
+                Courses
+                <small>
+                    Create, manage or remove courses
+                </small>
+            </h3>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2>Manage <small>Tabular View</small></h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <table id="courseTable"
+                    class="display table table-striped responsive-utilities jambo_table"
+                    cellspacing="0" width="100%">
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2>Create Course <small>Create a new course</small></h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <form class="form-horizontal form-label-left">
+                        <div class="form-group">
+                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="courseIDInput">COURSE ID</label>
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                <input type="text" id="courseIDInput" name="courseIDInput" required="required" class="form-control col-md-7 col-xs-12">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="courseTitle">COURSE TITLE</label>
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                <input type="text" id="courseTitle" name="courseTitle" required="required" class="form-control col-md-7 col-xs-12">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="courseStartInput">START YEAR</label>
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                <input type="number" id="courseStartInput" name="courseStartInput" required="required" class="form-control col-md-7 col-xs-12">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="courseCapacityInput">CAPACITY</label>
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                <input type="number" id="courseCapacityInput" name="courseCapacityInput" required="required" class="form-control col-md-7 col-xs-12">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="courseRemarksInput">REMARKS</label>
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                <input type="text" id="courseRemarksInput" name="courseRemarksInput" class="form-control col-md-7 col-xs-12">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button id="createCourseBtn" class="btn btn-primary col-sm-3 col-xs-12 pull-right">CREATE</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        var courseTable = null;
+
+        if(app !== null) {
+            
+            UpdateCourses();
+
+            $('#createCourseBtn').click(function (e) {
+                e.preventDefault();
+                var code = $('#courseIDInput').val();
+                var title = $('#courseTitle').val();
+                var start = parseInt($('#courseStartInput').val());
+                var capacity = parseInt($('#courseCapacityInput').val());
+                var remarks = $('#courseRemarksInput').val();
+                app.send({
+                    tag: "request.set",
+                    type: "create.course",
+                    data: {
+                        code: code,
+                        title: title,
+                        start: start,
+                        capacity: capacity,
+                        remarks: remarks
+                    }
+                }, function (res) {
+                    $('#courseIDInput').val('');
+                    $('#courseTitle').val('');
+                    $('#courseStartInput').val('');
+                    $('#courseCapacityInput').val('');
+                    $('#courseRemarksInput').val();
+                    UpdateCourses();
+                });
+            });
+
+        }
+
+        function UpdateCourses() {
+            app.send({
+                tag: "request.get",
+                type: "courses",
+                data: {}
+            }, function (res) {
+                console.log(res);
+                var courses = res.data.courses;
+                if(courseTable === null) {
+                    courseTable = $('#courseTable').DataTable({
+                        data: courses.map((v) => [v.code, v.title, v.start, v.capacity, v.remarks || "None"]),
+                        columns: [
+                            {title: "Code"},
+                            {title: "Title"},
+                            {title: "Start Year"},
+                            {title: "Capacity"},
+                            {title: "Remarks"}
+                        ],
+                        columnDefs: [
+                            { targets: [0,4], sortable: false }
+                        ]
+                    });
+                }
+                else {
+                    courseTable.clear();
+                    courseTable.rows.add(courses.map((v) => [v.code, v.title, v.start, v.capacity, v.remarks || "None"]));
+                    courseTable.draw();
+                }
+            });
+        }
+    });
+
+</script>
