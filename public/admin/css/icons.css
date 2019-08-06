@@ -1,0 +1,57 @@
+.icon {
+    display: inline-block;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-width: 25px;
+    min-height: 25px;
+    vertical-align: middle;
+}
+.icon.alt {
+    -webkit-filter: invert(100%); /* safari 6.0 - 9.0 */
+    filter: invert(100%);
+}
+
+.icon.dashboard {
+    background-image: url(../assets/icons/dashboard.svg);
+}
+.icon.conduct {
+    background-image: url(../assets/icons/conduct.svg);
+}
+.icon.analytics {
+    background-image: url(../assets/icons/analytics.svg);
+}
+.icon.settings {
+    background-image: url(../assets/icons/settings.svg);
+}
+.icon.bug {
+    background-image: url(../assets/icons/bug.svg);
+}
+.icon.room {
+    background-image: url(../assets/icons/room.svg);
+}
+.icon.records {
+    background-image: url(../assets/icons/records.svg);
+}
+.icon.student {
+    background-image: url(../assets/icons/student.svg);
+}
+.icon.crosshair {
+    background-image: url(../assets/icons/crosshair.svg);
+}
+.icon.account {
+    background-image: url(../assets/icons/account.svg);
+}
+.icon.envelope {
+    background-image: url(../assets/icons/envelope.svg);
+}
+.icon[class*='chevron'] {
+    transition: transform 0.2s linear;
+}
+.icon.chevron-up {
+    background-image: url(../assets/icons/chevron.svg);
+}
+.icon.chevron-down {
+    background-image: url(../assets/icons/chevron.svg);
+    transform: rotateZ(180deg);
+}

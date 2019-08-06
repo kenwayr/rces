@@ -1,397 +1,202 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title>Dashboard</title>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width">
-	<link rel="stylesheet" type="text/css" href="../commons/stylesheets/normalize.css">
-	<link rel="stylesheet" type="text/css" href="../commons/stylesheets/bootstrap.min.css">
-	<link rel="stylesheet" type="text/css" href="../commons/stylesheets/custom.css">
-	<link rel="stylesheet" type="text/css" href="../commons/fonts/fa-5-8/css/fontawesome.min.css">
-	<link rel="stylesheet" type="text/css" href="../commons/fonts/fa-5-8/css/solid.min.css">
-    <link rel="stylesheet" type="text/css" href="../commons/stylesheets/animate.min.css">
-    <link rel="stylesheet" type="text/css" href="../commons/stylesheets/datatables/datatables.min.css">
-    <link rel="stylesheet" type="text/css" href="../commons/stylesheets/icheck/flat/green.css">
-    <link rel="stylesheet" type="text/css" href="../commons/stylesheets/pnotify.custom.min.css" media="all">
-    <link rel="stylesheet" type="text/css" href="../commons/stylesheets/cropper.min.css">
-    <link rel="stylesheet" type="text/css" href="../commons/stylesheets/Chart.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>RCES - Faculty</title>
+    <link rel="stylesheet" href="./css/app.css">
+
+    <link rel="stylesheet" href="./css/icons.css">
+
+    <link rel="stylesheet" href="./css/vex.css">
+    <link rel="stylesheet" href="./css/vex-theme-os.css">
+
+    <link rel="stylesheet" href="./css/pure-min.css">
+
 </head>
-<body class="nav-md">
-	<div class="container body">
-		<div class="main_container">
-			<div class="col-md-3 left_col">
-	        <div class="left_col scroll-view" tabindex="5000" style="overflow: hidden; outline: none; cursor: -webkit-grab;">
-	            <div class="navbar nav_title" style="border: 0;">
-	                <a href="index.html" class="site_title"><i class="fas fa-crosshairs"></i> <span>RCES</span></a>
-	            </div>
-	            <div class="clearfix"></div>
+<body>
+    <div id="app">
 
-	            <!-- menu prile quick info -->
-	            <div class="profile">
-	                <div class="profile_pic">
-	                    <img src="../commons/assets/default.png" alt="..." class="img-circle profile_img profilePictureImage">
-	                </div>
-	                <div class="profile_info">
-	                    <span>Welcome,</span>
-	                    <h2><span data-var="username"></span></h2>
-	                </div>
-	            </div>
-	            <!-- /menu prile quick info -->
+        <nav class="navbar">
 
-	            <br>
+            <ul class="drawer">
+                <li class="header"> <i class="icon crosshair"></i> <span class="title">RCES</span> </li>
+                <li class="item" v-for="tab in tabs">
+                    <div class="holder" v-on:click="tabClick(tab)">
+                        <i v-bind:class="['icon', tab.icon]"></i> <span class="title">{{tab.title}}</span>
+                        <i v-if="tab.children" v-bind:class="['pull-right', 'icon', tab.active ? 'chevron-up' : 'chevron-down']"></i>
+                    </div>
+                    <ul v-if="tab.children" v-bind:class="['sub-drawer', tab.active ? 'active': '']">
+                        <li class="item" v-for="link in tab.children">
+                            <div class="holder" v-on:click="tabClick(link, false)">
+                                <i v-bind:class="['icon', link.icon]"></i> <span class="title">{{link.title}}</span>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
 
-	            <!-- sidebar menu -->
-	            <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+        </nav>
 
-	                <div class="menu_section">
-	                    <h3>Faculty</h3>
-	                    <ul class="nav side-menu">
-	                        <li class="vn"><a><i class="fas fa-home"></i> Home <span class="fas fa-chevron-down"></span></a>
-	                            <ul class="nav child_menu" style="display: none;">
-	                                <li class="current-page"><a data-target="dashboard.html">Dashboard</a></li>
-	                            </ul>
-	                        </li>
-	                        <li><a><i class="fas fa-edit"></i> Conduct <span class="fas fa-chevron-down"></span></a>
-	                            <ul class="nav child_menu" style="display: none;">
-	                                <li><a data-target="course-manager.html">Manage Courses</a></li>
-	                                <li><a data-target="student-record.html">Student Records</a></li>
-	                                <li><a data-target="notice-emitter.html">Push Notice</a></li>
-	                            </ul>
-	                        </li>
-	                        <li><a><i class="fas fa-desktop"></i> Analytics <span class="fas fa-chevron-down"></span></a>
-	                            <ul class="nav child_menu" style="display: none;">
-	                                <li><a data-target="overview.html">Overview</a></li>
-	                            </ul>
-	                        </li>
-	                        <li><a><i class="fas fa-table"></i> Under Construction <span class="fas fa-chevron-down"></span></a>
-	                            <ul class="nav child_menu" style="display: none;">
-	                                <li><a href="#">Tables</a></li>
-	                            </ul>
-	                        </li>
-	                        <li><a><i class="fas fas fa-cog"></i> Control Panel <span class="fas fa-chevron-down"></span></a>
-	                            <ul class="nav child_menu" style="display: none;">
-	                                <li><a data-target="settings.html">Settings</a></li>
-	                            </ul>
-	                        </li>
-	                    </ul>
-	                </div>
-	                <div class="menu_section">
-	                    <h3>Live On</h3>
-	                    <ul class="nav side-menu">
-	                        <li><a><i class="fas fa-bug"></i> Additional Pages <span class="fas fa-chevron-down"></span></a>
-	                            <ul class="nav child_menu" style="display: none;">
-	                                <li><a href="e_commerce.html">E-commerce</a>
-	                                </li>
-	                                <li><a href="projects.html">Projects</a>
-	                                </li>
-	                                <li><a href="project_detail.html">Project Detail</a>
-	                                </li>
-	                                <li><a href="contacts.html">Contacts</a>
-	                                </li>
-	                                <li><a href="profile.html">Profile</a>
-	                                </li>
-	                            </ul>
-	                        </li>
-	                       
-	                        <li><a><i class="fas fa-laptop"></i> Landing Page <span class="label label-success pull-right">Coming Soon</span></a>
-	                        </li>
-	                    </ul>
-	                </div>
+        <div class="content">
 
-	            </div>
-	            <!-- /sidebar menu -->
+            <div style="position:relative; height: 100%; margin-top: 30px;">
+                <div style="overflow-y: scroll; position: absolute; top: 0; right:0; bottom: 0; left: 0; margin-bottom: 30px;">
+                    <component v-bind:is="currentTab" v-bind="dynamicData"></component>
+                </div>
+            </div>
 
-	            <!-- /menu footer buttons -->
-	            <div class="sidebar-footer hidden-small">
-	                <a data-toggle="tooltip" data-placement="top" title="" data-original-title="Settings">
-	                    <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
-	                </a>
-	                <a data-toggle="tooltip" data-placement="top" title="" data-original-title="FullScreen">
-	                    <span onclick="toggleFullscreen(this);" class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span>
-	                </a>
-	                <a data-toggle="tooltip" data-placement="top" title="" data-original-title="Lock">
-	                    <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
-	                </a>
-	                <a data-toggle="tooltip" data-placement="top" title="" data-original-title="Logout">
-	                    <span onClick="app.close();" class="glyphicon glyphicon-off" aria-hidden="true"></span>
-	                </a>
-	            </div>
-	            <!-- /menu footer buttons -->
-	        </div></div>
-	    	<div class="top_nav">
+            <div class="notification-box">
+                <i class="icon envelope pull-right" style="cursor: pointer;" v-on:click="dynamicData.notification.active = !dynamicData.notification.active"></i>
+                <ul v-if="dynamicData.notification.active" class="list">
+                    <li v-if="dynamicData.notification.list.length === 0">
+                        No notifications available
+                    </li>
+                    <li class="notification" v-for="notif in dynamicData.notification.list">
+                        <i v-if="notif.icon" v-bind:class="['icon', notif.icon]"></i> <span>{{notif.text}}</span>
+                        <span class="time pull-right">{{findTime(notif.timestamp)}}</span>
+                    </li>
+                </ul>
+            </div>
+            
+        </div>
 
-                <div class="nav_menu">
-                    <nav class="" role="navigation">
-                        <div class="nav toggle">
-                            <a id="menu_toggle"><i class="fas fa-bars"></i></a>
-                        </div>
+    </div>
 
-                        <ul class="nav navbar-nav navbar-right">
-                            <li class="">
-                                <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                                    <img src="../commons/assets/default.png" alt="" class="profilePictureImage"><span data-var="username"></span>
-                                    <span class=" fas fa-angle-down"></span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-usermenu animated fadeInDown pull-right">
-                                    <li>
-                                    	<a href="javascript:;"> Profile</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Settings</a>
-                                    </li>
-                                    <li>
-                                        <a target="_blank" href="../commons/help/index.html">Help</a>
-                                    </li>
-                                </ul>
-                            </li>
+    <div id="modal"></div>
 
-                            <li role="presentation" class="dropdown">
-                                <a class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-envelope-open" style="cursor: pointer;"></i>
-                                    <span class="badge bg-green" data-var="notificationCount"></span>
-                                </a>
-                                <ul id="notificationsTray" class="dropdown-menu list-unstyled msg_list animated fadeInDown" role="menu">
-                                    <!-- NOTIFICATIONS -->
-                                </ul>
-                            </li>
-
-                        </ul>
-                    </nav>
-                </div></div>
-	    	<div id="tabPageContainer" class="right_col" role="main"></div>
-		</div>
-	</div>
-	<div id="signInModal" class="modal" tabindex="-1" role="dialog">
-	  <div class="modal-dialog" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-	        <h5 class="modal-title">Sign In</h5>
-	      </div>
-	      <div class="modal-body">
-	        <div class="form-group">
-				<label for="usernameField">username</label>
-				<input type="text" class="form-control" id="usernameField" placeholder="Enter your username">
-			</div>
-			<div class="form-group">
-				<label for="passwordField">password</label>
-				<input type="password" class="form-control" id="passwordField" placeholder="Enter your password">
-			</div>
-	      </div>
-	      <div class="modal-footer">
-	        <button id="signInBtn" type="button" class="btn btn-primary">sign in</button>
-	      </div>
-	    </div>
-	  </div>
-	</div>
-	<div id="disconnectModal" class="modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
-	  <div class="modal-dialog" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-	        <h5 class="modal-title">Connection Lost</h5>
-	      </div>
-	      <div class="modal-body">
-	        <p>Connection to the server was lost.</p>
-	      </div>
-	      <div class="modal-footer">
-	        <button id="retryConnectBtn" type="button" class="btn btn-primary">retry</button>
-	      </div>
-	    </div>
-	  </div>
-	</div>
-
-	<div id="notificationTemplate" class="hidden">
-		<li>
-		    <a>
-		        <span class="image">
-		        	{{icon}}
-				</span>
-		        <span>
-		    		<span>{{category}}</span>
-		        	<time class="time" datetime="{{time}}">{{timeText}}</time>
-		        </span>
-		        <span class="message">
-		    		{{message}}
-				</span>
-		    </a>
-        </li>
-	</div>
-<script type="text/javascript" src="./faculty.js"></script>
-<script type="text/javascript" src="../commons/scripts/jquery.min.js"></script>
-<script type="text/javascript" src="../commons/scripts/server.constants.js"></script>
-<script type="text/javascript" src="../commons/scripts/bootstrap.min.js"></script>
-<script type="text/javascript" src="../commons/scripts/custom.js"></script>
-<script type="text/javascript" src="../commons/scripts/nicescroll/jquery.nicescroll.min.js"></script>
-<script type="text/javascript" src="../commons/scripts/datatables/datatables.min.js"></script>
-<script type="text/javascript" src="../commons/scripts/pnotify/pnotify.custom.min.js"></script>
-<script type="text/javascript" src="../commons/scripts/cropper/cropper.min.js"></script>
-<script type="text/javascript" src="../commons/scripts/cropper/jquery-cropper.min.js"></script>
-<script type="text/javascript" src="../commons/scripts/date.format.js"></script>
-<script type="text/javascript" src="../commons/scripts/Chart.bundle.min.js"></script>
-<script type="text/javascript" src="./analytics.js"></script>
-<script type="text/javascript">
-
-	var app = null;
-	
-	function SetVariable(variable, value) {
-	    $("[data-var=\"" + variable + "\"]").text(value);
-	}
-
-	function SetTab(target, parameters = {}, callback = () => {}) {
-		$("#tabPageContainer").load(target, parameters, callback);
-	}
-
-	function ReloadScript(src) {
-        $('script[src="' + src + '"]').remove();
-        $('<script>').attr('src', src).appendTo('head');
-    }
-
-    function PushNotify(title, text,
-    	{custom = '', icon = '', nonblock = true, animation = {in_class: '', out_class: ''}, after_init = (d) => {} }) {
-    	new PNotify({
-			title: title,
-			text: text,
-			addclass: custom,
-			icon: icon,
-			nonblock: {
-				nonblock: nonblock
-			},
-			animate: {
-				animate: animation.in_class !== '' || animation.out_class !== '',
-				in_class: animation.in_class,
-				out_class: animation.out_class
-			},
-			after_init: after_init,
-		});
-    }
-
-    function UpdateProfilePicture() {
-    	app.send({
-    		tag: "request.get",
-    		type: "profiles",
-    		data: {
-    			type: "faculty",
-    			username: app.connection.username
-    		}
-    	}, function (response) {
-    		if(response.data.profiles[0].hasOwnProperty('dp_res_id'))
-    		{
-    			var dp_res_id = response.data.profiles[0].dp_res_id;
-	    		$.ajax({
-	    			url: 'http://localhost:1337/resource?id=' + dp_res_id,
-	    			success: function (response) {
-	    				response = JSON.parse(response);
-	    				if(response.type === 'image/b64img') {
-	    					$(".profilePictureImage").attr('src', response.binaryData);
-	    				}
-	    			}
-	    		});
-    		}
-    	});
-    }
-
-    async function UpdateNotifications(notifications, max = 5) {
-    	var template = $("#notificationTemplate").html();
-    	var body = "", icon, category, time, timeText, message;
-    	for(var i=0; i < max && i < notifications.length; i++) {
-    		category = notifications[i].type;
-    		if(notifications[i].type === "connections") {
-    			icon = "<i class='fas fa-plug'></i>";
-    		}
-    		else if(notifications[i].type === "updates") {
-    			icon = "<i class='fas fa-plug'></i>";
-    		}
-
-    		time = new Date(parseInt(notifications[i].meta.timestamp)).toISOString();
-    		var timeDiff = new Date(Date.now()).getTime() - new Date(parseInt(notifications[i].meta.timestamp)).getTime();
-
-    		if(timeDiff > 1000 * 60 * 60 * 24) {
-    			timeText = Math.floor(timeDiff / (1000 * 60 * 60 * 24)) + " days ago";
-    		}
-    		else if(timeDiff > 1000 * 60 * 60) {
-    			timeText = Math.floor(timeDiff / (1000 * 60 * 60)) + " hrs ago";
-    		}
-    		else if(timeDiff > 1000 * 60) {
-    			timeText = Math.floor(timeDiff / (1000 * 60)) + " mins ago";
-    		}
-    		else {
-    			timeText = "Just now";
-    		}
-
-    		message = notifications[i].message;
-
-    		body += template.replace("{{icon}}", icon)
-    			   .replace("{{time}}", time)
-    			   .replace("{{timeText}}", timeText).
-    			   replace("{{message}}", message)
-    			   .replace("{{category}}", category);
-    	}
-    	$("#notificationsTray").html(body + '<li><div class="text-center"><a data-target="notifications.html"><strong>See All</strong><i class="fas fa-angle-right"></i></a></div></li>');
-    }
-
-	$(document).ready(function () {
-		app = new App();
-
-		window.onbeforeunload = function () { app.close(); };
-
-		$("#sidebar-menu > div > ul > li > ul > li").click(function () {
-			var current = $("#sidebar-menu > div > ul > li > ul > li.current-page");
-			current.removeClass("current-page");
-			$(this).addClass("current-page");
-			SetTab($(this).find("a[data-target]").attr('data-target'));
-		});
-
-		$("#signInModal").modal({
-			keyboard: false,
-			backdrop: 'static'
-		});
-		app.addCallback("notifications", function(notifications) {
-			SetVariable("notificationCount", notifications.length);
-			UpdateNotifications(notifications);
-		});
-		app.addCallback("connection", function(connection) {
-			if(connection.connected === false)
-			{
-				$("#disconnectModal").modal('show');
-				$("#retryConnectBtn").removeAttr('disabled');
-			}
-			else
-			{
-				$("#disconnectModal").modal('hide');
-			}
-
-			if(connection.verified === true)
-			{
-				$("#signInModal").modal('hide');
-				UpdateProfilePicture();
-				SetTab("dashboard.html");
-			}
-			else
-			{
-				$("#signInModal").modal('show');
-				$("#signInBtn").removeAttr('disabled');
-			}
-
-			if(connection.username === null)
-			{
-				SetVariable("username", "Unknown");
-			}
-			else
-			{
-				SetVariable("username", connection.username);
-			}
-		});
-		$("#signInBtn").click(function () {
-			$(this).attr('disabled', 'disabled');
-			var username = $("#usernameField").val();
-			var password = $("#passwordField").val();
-			app.connect(username, password);
-			window.audioContext = new AudioContext();
-		});
-		$("#retryConnectBtn").click(function() {
-			$(this).attr('disabled', 'disabled');
-			app.refresh();
-		});
-	});
+<script type="text/x-template" id="dashboard-template">
+    <div>
+        <div v-if="!session.active" class="card">
+            <header>
+                <i class="icon dashboard alt"></i>
+                <span>Dashboard</span>
+            </header>
+            <div>
+                <select v-model="session.course" v-on:click="LoadCourses">
+                    <option v-for="(course, index) in records.courses" v-bind:value="course">{{course.title}} ({{course.code}})</option>
+                </select>
+            </div>
+            <div>
+                <select v-model="session.room" v-on:click="LoadRooms">
+                    <option disabled selected value>Select a room</option>
+                    <option v-for="room in records.rooms" v-bind:value="room" v-bind:disabled="room.usage.inUse">{{room.code}} ({{room.capacity}})</option>
+                </select>
+            </div>
+            <button class="pure-button pure-button-primary" v-on:click="StartSession">Start</button>
+            <div>
+                <ul>
+                    <li v-for="session in sessionList">[{{session.date.start.Date}}/{{session.date.start.Month}}/{{session.date.start.Year}}] - {{session.course.code}}, {{session.room.code}}</li>
+                </ul>
+            </div>
+        </div>
+        <div v-if="session.active" class="card">
+            <header>
+                <i class="icon dashboard alt"></i>
+                <span>Session</span>
+            </header>
+            <div>
+                <p> <b>Room: </b> {{session.room.code}} </p>
+                <p> <b>Course: </b> {{session.course.title}} ({{session.course.code}})  </p>
+                <p> <b>Time: </b> {{ computedCurrentTime }}</p>
+            </div>
+            <div>
+                <canvas ref="WaveCanvas" width="720" height="220"></canvas>
+                <button class="pure-button pure-button-secondary" v-on:click="ToggleWaveState()">{{session.toggleButtonText}}</button>
+            </div>
+            <div>
+                <canvas ref="RoomView" style="display: block; margin: 0 auto;"></canvas>
+                <img src="./assets/icons/laptop.svg" style="width: 30px; display: block; margin: 0 auto;">
+            </div>
+            <button class="pure-button pure-button-primary" v-on:click="EndSession">End</button>
+        </div>
+    </div>
 </script>
+<script type="text/x-template" id="course-manager-template">
+    <div>
+        <div class="card lg">
+            <h3>Course Creator <small>Create a new course</small></h3>
+            <form v-on:submit.prevent class="pure-form pure-form-stacked" autocomplete="off">
+                <input type="text" v-model="code" placeholder="Course Code" required />
+                <span class="pure-form-message">This is a required field.</span>
+                
+                <input type="text" v-model="title" placeholder="Course Title" required/>
+                <span class="pure-form-message">This is a required field.</span>
+
+                <input type="number" v-model="start" placeholder="Start Year" required/>
+                <span class="pure-form-message">This is a required field.</span>
+
+                <input type="text" v-model="remarks" placeholder="Remarks" />
+
+                <button type="submit" v-on:click="OnCreateCourse" class="pure-button pure-button-primary">Create</button>
+            </form>
+        </div>
+    </div>
+</script>
+<script type="text/x-template" id="room-manager-template">
+    <div>
+        <h3>Room Manager</h3>
+        <div class="card">
+            <div>
+                <input type="text" v-model="code" placeholder="Enter room code" required>
+            </div>
+            <div>
+                <input type="number" v-model="nrows">
+                x 
+                <input type="number" v-model="ncols">
+            </div>
+            <div>
+                <input type="checkbox" v-model="availability">
+            </div>
+            <button class="pure-button pure-button-primary" v-on:click="OnUpdateRoomEditor">Update</button>
+            <canvas style="display:block;border:1px solid #000;" id="RoomEditor" width="250" height="250"></canvas>
+            <button class="pure-button pure-button-primary" v-on:click="OnCreateRoom">Create</button>
+        </div>
+    </div>
+</script>
+<script type="text/x-template" id="faculty-records-template">
+    <div>
+        <h3>Faculty Records</h3>
+        <div class="card" v-for="faculty in records.faculties">
+            <header>
+                <i class="icon student alt"></i>
+                <span style="font-size: 14pt;">{{ faculty.name || ('@' + faculty.username) }}</span>
+            </header>
+            <p>
+                <b>username:</b> {{faculty.username || 'N/A'}}
+            </p>
+            <p>
+                <b>designation:</b> {{faculty.designation || 'N/A'}}
+            </p>
+            <p>
+                <b>email:</b> {{faculty.email || 'N/A'}}
+            </p>
+            <p>
+                <b>phone:</b> {{faculty.phone || 'N/A'}}
+            </p>
+            <p>
+                <b>authorizer:</b> {{faculty.authorizer || 'N/A'}}
+            </p>
+        </div>
+    </div>
+</script>
+<script type="text/x-template" id="student-records-template">
+    <p>Student Records</p>
+</script>
+
+<script src="./js/axios.min.js"></script>
+
+<script src="./js/waver.class.js"></script>
+
+<script src="./js/room.editor.js"></script>
+
+<script src="./js/vex.combined.min.js"></script>
+
+<script src="./js/socket.class.js"></script>
+
+<script src="./js/vue.js"></script>
+
+<script src="./js/app.js"></script>
 </body>
 </html>

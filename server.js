@@ -70,7 +70,7 @@ messageController.AddControl("login", {
                     MessageController.Broadcast({
                         list: clients.admin.GetBroadcastList(),
                         message: {
-                            tag: "update.admin",
+                            tag: "update." + message.data.type,
                             data: {
                                 push: [account]
                             }
@@ -106,9 +106,9 @@ messageController.AddControl("login", {
                     })
                 }
                 else {
-                    database.CreateStudent({ device_id: message.device_id, number: message.number }).then((id) => {
+                    database.CreateStudent({ device_id: message.data.device_id, number: message.data.number }).then((id) => {
                         
-                        clients.student.Add(message.number, { device_id: message.device_id, number: message.number, verified: false }, connection)
+                        clients.student.Add(message.data.number, { device_id: message.data.device_id, number: message.data.number, verified: false }, connection)
 
                         MessageController.SendMessage({
                             connection: connection,
@@ -436,7 +436,7 @@ messageController.AddControl("get.rooms", {
         MessageController.SendMessage({
             connection: connection,
             message: {
-                data: rooms
+                data: rooms.GetRooms()
             },
             template: message
         })
@@ -448,12 +448,29 @@ messageController.AddControl("get.courses", {
         MessageController.SendMessage({
             connection: connection,
             message: {
-                data: courses
+                data: courses.GetCourses()
             },
             template: message
         })
     }
 })
+
+messageController.AddControl("get.sessions", {
+    callback: (connection, message) => {
+        var id = clients.faculty.GetIdentifier(connection)
+        if(id) {
+            database.GetSessions(id).then((sessions) => {
+                MessageController.SendMessage({
+                    connection: connection,
+                    message: {
+                        data: sessions
+                    },
+                    template: message
+                })
+            })
+        }
+    }
+});
 
 messageController.AddControl("set.me", {
     callback: (connection, message) => {
@@ -859,6 +876,244 @@ messageController.AddControl("remove.course", {
     }
 })
 
+messageController.AddControl('exit', {
+    callback: (connection, message) => {
+        var id
+        if(id = clients.admin.GetIdentifier(connection)) {
+            var account = clients.admin.GetRecord(id)
+            MessageController.Broadcast({
+                list: clients.admin.GetBroadcastList(),
+                message: {
+                    tag: "update.admin",
+                    data: {
+                        pop: [account]
+                    }
+                },
+                template: message
+            })
+        }
+        else if(id = clients.faculty.GetIdentifier(connection)) {
+            var account = clients.faculty.GetRecord(id)
+            MessageController.Broadcast({
+                list: clients.admin.GetBroadcastList(),
+                message: {
+                    tag: "update.faculty",
+                    data: {
+                        pop: [account]
+                    }
+                },
+                template: message
+            })
+        }
+        else if(id = clients.student.GetIdentifier(connection)) {
+            var account = clients.student.GetRecord(id)
+            MessageController.Broadcast({
+                list: clients.admin.GetBroadcastList(),
+                message: {
+                    tag: "update.student",
+                    data: {
+                        pop: [account]
+                    }
+                },
+                template: message
+            })
+        }
+    }
+})
+
+messageController.AddControl('start.session', {
+    callback: (connection, message) => {
+        var id = clients.faculty.GetIdentifier(connection)
+        if(id) {
+            var records = clients.faculty.GetRecord(id)
+            if(records.session && records.session.active === true)
+                MessageController.SendMessage({
+                    connection: connection,
+                    message: {
+                        data: {
+                            started: false
+                        },
+                        error: "A session is already active"
+                    },
+                    template: message
+                })
+            else {
+                if(!rooms.GetRoom(message.data.room.code).usage.inUse) {
+                    var token = sessionManager.StartSession(id, message.data.course, message.data.room)
+                    rooms.SetSession(message.data.room.code, token);
+                    records.session = { active: true, token: token, room_code: message.data.room.code, course_code: message.data.course.code }
+                    clients.faculty.ChangeRecord(id, records)
+                    MessageController.SendMessage({
+                        connection: connection,
+                        message: {
+                            data: {
+                                started: true,
+                                token: token
+                            }
+                        },
+                        template: message
+                    })
+                }
+                else {
+                    MessageController.SendMessage({
+                        connection: connection,
+                        message: {
+                            data: {
+                                started: false
+                            },
+                            error: "Room is already in use"
+                        },
+                        template: message
+                    })
+                }
+            }
+        }
+    },
+    validations: {
+        required: ["data.course", "data.room"]
+    }
+})
+
+messageController.AddControl('stop.session', {
+    callback: (connection, message) => {
+        var id = clients.faculty.GetIdentifier(connection)
+        if(id) {
+            var records = clients.faculty.GetRecord(id)
+            if(records.session && records.session.active === true) {
+                if(sessionManager.Has(records.session.token)) {
+                    var data = sessionManager.EndSession(records.session.token)
+                    rooms.UnsetSession(records.session.room_code)
+                    var res = database.SaveSession(data)
+                    console.log(res)
+                }
+                records.session.active = false;
+                clients.faculty.ChangeRecord(id, records)
+                MessageController.SendMessage({
+                    connection: connection,
+                    message: {
+                        data: {
+                            stopped: true
+                        }
+                    },
+                    template: message
+                })
+                var connectedStudents = clients.student.GetRecords().filter((v) => {
+                    return v.session && v.session.facultyConnection.id === connection.id;
+                })
+                for(var i=0; i < connectedStudents.length; i++)
+                    MessageController.SendMessage({
+                        connection: clients.student.GetConnection(connectedStudents[i].number),
+                        message: {
+                            tag: "stop.session",
+                            data: {}
+                        },
+                        template: {}
+                    })
+            }
+            else {
+                MessageController.SendMessage({
+                    connection: connection,
+                    message: {
+                        data: {
+                            stopped: false
+                        },
+                        error: "No session is active"
+                    },
+                    template: message
+                })
+            }
+        }
+    }
+})
+
+messageController.AddControl('join.session', {
+    callback: (connection, message) => {
+        var id = clients.student.GetIdentifier(connection)
+        if(id) {
+            var records = clients.student.GetRecord(id)
+            var qrData = message.data.qrcode.split(";");
+            var room_code = qrData[0];
+            if(rooms.Has(room_code)) {
+                var sessionId = rooms.GetRoom(room_code).usage.sessionId
+                var sessionObject = sessionManager.GetSession(sessionId)
+                var facultyConnection = clients.faculty.GetConnection(sessionObject.session.faculty)
+                MessageController.SendMessage({
+                    connection: facultyConnection,
+                    message: {
+                        tag: "event.student",
+                        data: {
+                            type: "join",
+                            number: records.number,
+                            seat: {
+                                row: qrData[1],
+                                col: qrData[2]
+                            },
+                            timestamp: Date.now()
+                        }
+                    },
+                    template: message
+                })
+
+                sessionManager.AddEvent(sessionId, { type: "join", number: records.number, seat: { row: qrData[1], col: qrData[2] } });
+
+                records.session = {
+                    token: sessionId,
+                    start: sessionObject.session.date.start.UTCTimestampMillis,
+                    room: sessionObject.session.room,
+                    course: sessionObject.session.course,
+                    facultyConnection: facultyConnection
+                }
+
+                MessageController.SendMessage({
+                    connection: connection,
+                    message: {
+                        data: {
+                            start: sessionObject.session.date.start.UTCTimestampMillis,
+                            room: sessionObject.session.room,
+                            course: sessionObject.session.course,
+                            faculty: sessionObject.session.faculty
+                        }
+                    },
+                    template: message
+                })
+
+                clients.student.ChangeRecord(id, records)
+            }
+        }
+        else {
+            MessageController.SendMessage({
+                connection: connection,
+                message: {
+                    data: {},
+                    error: "You have not logged in"
+                },
+                template: message
+            })
+        }
+    },
+    validations: {
+        required: ["data.qrcode"]
+    }
+})
+
+messageController.AddControl('event.student', {
+    callback: (connection, message) => {
+        var id = clients.student.GetIdentifier(connection)
+        if(id) {
+            var records = clients.student.GetRecord(id)
+            message.data.number = records.number
+            if(records.session) {
+                sessionManager.AddEvent(records.session.token, message.data);
+                MessageController.SendMessage({
+                    connection: records.session.facultyConnection,
+                    message: message,
+                    template: message
+                });
+            }
+        }
+    }
+})
+
 database.Init().then(() => {
 
     database.LoadRooms().then((list) => {
@@ -866,6 +1121,7 @@ database.Init().then(() => {
     })
 
     database.LoadCourses().then((list) => {
+        console.log(list)
         courses.AddCourses(list)
     })
 
@@ -880,25 +1136,30 @@ database.Init().then(() => {
         {name: "token", maxCount: 1},
         {name: "type", maxCount: 1},
         {name: "file", maxCount: 1},
+        {name: "chunk", maxCount: 1}
     ]), (req, res) => {
         var token = req.body.token
         var type = req.body.type
         var file = req.files.file[0]
-        if(!sessionManager.Has(token))
+        if(!sessionManager.Has(token)) {
             res.end(JSON.stringify({
                 error: true,
                 status: "No such session recorded"
             }))
-        var id = null
-        if(type === "media")
-            id = sessionManager.AddResource(token, file)
-        else
-            sessionManager.AddMediaChunk(token, file)
-        res.end(JSON.stringify({
-            error: false,
-            status: "Done",
-            id: id
-        }))
+        }
+        else {
+            var id = null
+            if(type === "media") {
+                id = sessionManager.AddResource(token, file)
+            } else {
+                sessionManager.AddMediaChunk(token, file.buffer)
+            }
+            res.end(JSON.stringify({
+                error: false,
+                status: "Done",
+                id: id
+            }))
+        }
     })
 
     app.post('/resource', upload.fields([
@@ -932,6 +1193,10 @@ database.Init().then(() => {
             }
         })
         ws.on('close', () => {
+            messageController.Eval(ws, {
+                tag: "exit",
+                data: {}
+            })
             console.log('CLOSED CONNECTION')
         })
     })
