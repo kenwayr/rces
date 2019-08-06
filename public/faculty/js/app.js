@@ -50,7 +50,7 @@ var app = new Vue({
                 },
                 StartSession () {
                     this.session.active = true;
-                    navigator.getUserMedia({audio: true, video: false}, (stream) => {
+                    navigator.mediaDevices.getUserMedia({audio: true, video: false}, (stream) => {
                         CentralBus.$emit('start.session', { course: this.session.course, room: this.session.room });
                         this.session.recorder = new MediaRecorder(stream);
                         this.session.start = Date.now();
