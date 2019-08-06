@@ -50,7 +50,7 @@ var app = new Vue({
                 },
                 StartSession () {
                     this.session.active = true;
-                    navigator.mediaDevices.getUserMedia({audio: true, video: false}, (stream) => {
+                    navigator.mediaDevices.getUserMedia({audio: true, video: false}).then((stream) => {
                         CentralBus.$emit('start.session', { course: this.session.course, room: this.session.room });
                         this.session.recorder = new MediaRecorder(stream);
                         this.session.start = Date.now();
@@ -68,7 +68,7 @@ var app = new Vue({
                         this.roomViewer.Init().then(() => {
                             this.roomViewer.ImportSeatMatrix(this.session.room.seat_matrix);
                         });
-                    }, (e) => console.log(e));
+                    }).catch((e) => console.log(e));
                 },
                 ToggleWaveState() {
                     if(this.waver.state === this.waver.PLAYING) {
