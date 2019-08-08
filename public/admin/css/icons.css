@@ -45,6 +45,12 @@
 .icon.envelope {
     background-image: url(../assets/icons/envelope.svg);
 }
+.icon.print {
+    background-image: url(../assets/icons/print.svg);
+}
+.icon.button {
+    cursor: pointer;
+}
 .icon[class*='chevron'] {
     transition: transform 0.2s linear;
 }

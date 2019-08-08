@@ -138,6 +138,23 @@
 <script type="text/x-template" id="room-manager-template">
     <div>
         <h3>Room Manager</h3>
+        <div class="card lg">
+            <table class="pure-table">
+                <thead>
+                    <th v-for="header in roomTableHeaders">{{header}}</th>
+                    <th>Actions</th>
+                </thead>
+                <tbody>
+                    <tr v-for="row in roomTableRows">
+                        <td v-for="field in row.data">{{field}}</td>
+                        <td>
+                            <i class="icon button print" v-on:click="PrintRoom(row.key)"></i>
+                            <i class="icon button "></i>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         <div class="card">
             <div>
                 <input type="text" v-model="code" placeholder="Enter room code" required>
@@ -183,8 +200,24 @@
     </div>
 </script>
 <script type="text/x-template" id="student-records-template">
-    <p>Student Records</p>
+    <div>
+        <h3>Student Records</h3>
+        <div class="card" v-for="student in records.students">
+            <header>
+                <i class="icon student alt"></i>
+                <span style="font-size: 14pt;">{{ student.device_id || 'Unknown Device' }}</span>
+            </header>
+            <p>Number: {{student.number}}</p>
+            <button class="pure-button pure-button-primary" v-on:click="DeleteStudent(student.number)">delete</button>
+        </div>
+    </div>
 </script>
+
+<script src="./js/qrcode.min.js"></script>
+
+<script src="./js/qr.generator.js"></script>
+
+<script src="./js/vue.table.manager.js"></script>
 
 <script src="./js/room.editor.js"></script>
 

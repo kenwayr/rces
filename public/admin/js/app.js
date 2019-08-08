@@ -70,7 +70,22 @@ var app = new Vue({
                     roomEditor: null,
                     nrows: 0,
                     ncols: 0,
-                    availability: true
+                    availability: true,
+                    roomTable: new TableManager({
+                        headers: [
+                            {title: "Code", fieldName: "code", primaryKey: true},
+                            {title: "Capacity", fieldName: "capacity"},
+                            {title: "Availability", fieldName: "available"}
+                        ]
+                    })
+                }
+            },
+            computed: {
+                roomTableHeaders () {
+                    return this.roomTable.GetHeaders();
+                },
+                roomTableRows () {
+                    return this.roomTable.GetRows();
                 }
             },
             methods: {
@@ -80,14 +95,43 @@ var app = new Vue({
                         inactiveSeatSrc: './assets/icons/seat.svg'
                     });
                     this.roomEditor.Init().then(() => {
-                        console.log(this.nrows, this.ncols);
                         this.roomEditor.CreateGrid(this.nrows, this.ncols);
                     });
                 },
                 OnCreateRoom() {
                     var capacity = this.roomEditor.matrix.reduce((a,v) => a + v.reduce((a1,v1) => a1 + (v1 ? 1 : 0), 0), 0);
                     CentralBus.$emit('add.room', { code: this.code, seat_matrix: this.roomEditor.matrix, capacity: capacity, available: this.availability })
+                    this.UpdateRooms();
+                },
+                UpdateRooms() {
+                    CentralBus.$emit('update.room');
+                },
+                PrintRoom(code) {
+                    var room = this.roomTable.Get(code);
+                    if(room) {
+                        var qg = new QRGenerator();
+                        var seat_matrix = room.seat_matrix;
+                        for(var i=0; i < seat_matrix.length; i++) {
+                            for(var j=0; j < seat_matrix[i].length; j++) {
+                                if(seat_matrix[i][j])
+                                    qg.Add([room.code,i,j].join(';'), room.code + '-' + i + '-' + j);
+                            }
+                        }
+                        qg.Print();
+                    }
                 }
+            },
+            created() {
+                CentralBus.$on('updated.room', (data) => {
+                    data = data.map((v) => {
+                        v.available = v.available ? 'available' : 'unavailable';
+                        return v;
+                    });
+                    this.roomTable.CreateFrom(data);
+                });
+            },
+            mounted () {
+                this.UpdateRooms();
             }
         },
         facultyRecords: {
@@ -100,6 +144,11 @@ var app = new Vue({
         studentRecords: {
             template: '#student-records-template',
             props: ['records'],
+            methods: {
+                DeleteStudent(number) {
+                    CentralBus.$emit("remove.student", number);
+                }
+            },
             created() {
                 CentralBus.$emit('update.students');
             }
@@ -273,6 +322,17 @@ var app = new Vue({
                     this.alert('Room added - ' + data.code);
             });
         });
+        CentralBus.$on('update.room', () => {
+            this.socket.Get('rooms', {}, (message) => {
+                console.log(message.data);
+                CentralBus.$emit('updated.room', message.data);
+            });
+        });
+        CentralBus.$on('remove.student', (number) => {
+            this.socket.Remove('student', {number: number}, (message) => {
+                CentralBus.$emit('update.students');
+            })
+        })
     },
     mounted () {
 

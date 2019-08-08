@@ -10,3 +10,5 @@
 [ Tue Aug 06 2019 21:38:38 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'usage' of undefined
 [ Tue Aug 06 2019 21:53:09 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'validations' of undefined
 [ Wed Aug 07 2019 00:54:39 GMT+0530 (India Standard Time) ] => SyntaxError: Unexpected string in JSON at position 29
+[ Wed Aug 07 2019 13:10:26 GMT+0530 (India Standard Time) ] => SyntaxError: Unexpected token H in JSON at position 0
+[ Wed Aug 07 2019 13:30:19 GMT+0530 (India Standard Time) ] => SyntaxError: Unexpected token H in JSON at position 0

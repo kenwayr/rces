@@ -876,6 +876,39 @@ messageController.AddControl("remove.course", {
     }
 })
 
+messageController.AddControl('remove.student', {
+    callback: (connection, message) => {
+        var id = clients.admin.GetIdentifier(connection)
+        if(id) {
+            database.DeleteStudent(message.data.number).then((res) => {
+                MessageController.SendMessage({
+                    connection: connection,
+                    message: {
+                        data: {
+                            deleted: true
+                        }
+                    },
+                    template: message
+                })
+            }).catch((e) => {
+                MessageController.SendMessage({
+                    connection: connection,
+                    message: {
+                        data: {
+                            deleted: false
+                        },
+                        error: "Internal Server Error: " + e
+                    },
+                    template: message
+                })
+            })
+        }
+    },
+    validations: {
+        required: ["data.number"]
+    }
+})
+
 messageController.AddControl('exit', {
     callback: (connection, message) => {
         var id
