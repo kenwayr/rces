@@ -64,8 +64,8 @@ var app = new Vue({
                         this.waver.play();
                         this.session.recorder.start(50);
                         this.roomViewer = new RoomView(this.$refs.RoomView, {
-                            occupiedSrc: './assets/icons/device.svg',
-                            emptySrc: './assets/icons/seat.svg'
+                            occupiedSrc: '../common/assets/icons/device.svg',
+                            emptySrc: '../common/assets/icons/seat.svg'
                         });
                         this.roomViewer.Init().then(() => {
                             this.roomViewer.ImportSeatMatrix(this.session.room.seat_matrix);
