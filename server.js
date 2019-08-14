@@ -1205,7 +1205,7 @@ database.Init().then(() => {
                 author: 'Tamal Das',
                 license: 'MIT'
             }
-        })
+        }))
     })
 
     app.post('/upload', upload.fields([
