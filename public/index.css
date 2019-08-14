@@ -1,0 +1,35 @@
+h1,h2,h3,h4,h5,h6,label {
+    color:#34495e;
+}
+.parallax-bg {
+    z-index: 1;
+    overflow: hidden;
+    width: 100%;
+    height: 88%;
+    top: 0;
+    left: 0;
+    position: fixed !important;
+}
+.head-section {
+    margin: auto;
+    position: absolute;
+    top: 100px;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    text-align: center;
+    text-transform: uppercase;
+}
+.parallax-fg {
+    position: absolute;
+    top: 87%;
+    width: 100%;
+    min-height: 12%;
+    z-index: 2;
+}
+.pure-button-theme {
+    background: white !important;
+    color: #1f8dd6 !important;
+    border-radius: 5px !important;
+    font-size: 120% !important;
+}

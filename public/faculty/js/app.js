@@ -3,6 +3,8 @@ vex.defaultOptions.className = 'vex-theme-os';
 
 var CentralBus = new Vue();
 
+var isSSLEncrypted = (location.protocol === 'https:' ? true : false);
+
 var app = new Vue({
     el: '#app',
     components: {
@@ -189,7 +191,7 @@ var app = new Vue({
     data: {
         title: "Dashboard",
         currentTab: 'dashboard',
-        socket: new Socket(true), // change to true on production
+        socket: new Socket(isSSLEncrypted), // change to true on production
         tabs: [
             {
                 title: "Dashboard",

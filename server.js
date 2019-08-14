@@ -12,6 +12,7 @@ const SessionManager = require('./lib/SessionManager.class')
 const MessageController = require('./lib/MessageController.class')
 const RoomList = require('./lib/RoomList.class')
 const CourseList = require('./lib/CourseList.class')
+const package = require('./package.json')
 
 const upload = multer()
 
@@ -1033,7 +1034,6 @@ messageController.AddControl('stop.session', {
                     var data = sessionManager.EndSession(records.session.token)
                     rooms.UnsetSession(records.session.room_code)
                     var res = database.SaveSession(data)
-                    console.log(res)
                 }
                 records.session.active = false;
                 clients.faculty.ChangeRecord(id, records)
@@ -1179,7 +1179,6 @@ database.Init().then(() => {
     })
 
     database.LoadCourses().then((list) => {
-        console.log(list)
         courses.AddCourses(list)
     })
 
@@ -1189,6 +1188,25 @@ database.Init().then(() => {
     httpserver = http.createServer(app)
 
     wss = new WebSocket.Server({ server: httpserver })
+
+    app.get('/info/json', (req,res) => {
+        res.end(JSON.stringify({
+            server: {
+                name: package.name,
+                version: package.version,
+                description: package.description,
+                author: package.author,
+                license: package.license
+            },
+            app: {
+                name: 'RCES Mobile',
+                version: '0.0.1',
+                description: 'RCES Mobile App for students',
+                author: 'Tamal Das',
+                license: 'MIT'
+            }
+        })
+    })
 
     app.post('/upload', upload.fields([
         {name: "token", maxCount: 1},
@@ -1242,7 +1260,6 @@ database.Init().then(() => {
     wss.on('connection', (ws) => {
         ws.id = uniqid();
         ws.on('message', (message) => {
-            console.log(message)
             try {
                 var messageObject = JSON.parse(message)
                 messageController.Eval(ws, messageObject)
@@ -1255,7 +1272,6 @@ database.Init().then(() => {
                 tag: "exit",
                 data: {}
             })
-            console.log('CLOSED CONNECTION')
         })
     })
 
