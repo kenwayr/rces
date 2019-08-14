@@ -105,7 +105,7 @@ messageController.AddControl("login", {
                         template: message
                     })
                 }
-                else {
+                else if(message.data.create_if_not_exists){
                     database.CreateStudent({ device_id: message.data.device_id, number: message.data.number }).then((id) => {
                         
                         clients.student.Add(message.data.number, { device_id: message.data.device_id, number: message.data.number, verified: false }, connection)
@@ -113,11 +113,27 @@ messageController.AddControl("login", {
                         MessageController.SendMessage({
                             connection: connection,
                             message: {
-                                data: {},
+                                data: {
+                                    exists: false,
+                                    created: true
+                                },
                                 error: null
                             },
                             template: message
                         })
+                    })
+                }
+                else {
+                    MessageController.SendMessage({
+                        connection: connection,
+                        message: {
+                            data: {
+                                exists: false,
+                                created: false
+                            },
+                            error: null
+                        },
+                        template: message
                     })
                 }
             })
@@ -1140,6 +1156,15 @@ messageController.AddControl('event.student', {
                 MessageController.SendMessage({
                     connection: records.session.facultyConnection,
                     message: message,
+                    template: message
+                })
+                MessageController.SendMessage({
+                    connection: connection,
+                    message: {
+                        data: {
+                            logged: true
+                        }
+                    },
                     template: message
                 });
             }
