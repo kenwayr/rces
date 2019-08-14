@@ -93,8 +93,8 @@ var app = new Vue({
             methods: {
                 OnUpdateRoomEditor() {
                     this.roomEditor = new RoomEditor(document.getElementById('RoomEditor'), {
-                        activeSeatSrc: './assets/icons/seat-inverse.svg',
-                        inactiveSeatSrc: './assets/icons/seat.svg'
+                        activeSeatSrc: '../common/assets/icons/seat-inverse.svg',
+                        inactiveSeatSrc: '../common/assets/icons/seat.svg'
                     });
                     this.roomEditor.Init().then(() => {
                         this.roomEditor.CreateGrid(this.nrows, this.ncols);

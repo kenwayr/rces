@@ -1083,50 +1083,61 @@ messageController.AddControl('join.session', {
             var qrData = message.data.qrcode.split(";");
             var room_code = qrData[0];
             if(rooms.Has(room_code)) {
-                var sessionId = rooms.GetRoom(room_code).usage.sessionId
-                var sessionObject = sessionManager.GetSession(sessionId)
-                var facultyConnection = clients.faculty.GetConnection(sessionObject.session.faculty)
-                MessageController.SendMessage({
-                    connection: facultyConnection,
-                    message: {
-                        tag: "event.student",
-                        data: {
-                            type: "join",
-                            number: records.number,
-                            seat: {
-                                row: qrData[1],
-                                col: qrData[2]
-                            },
-                            timestamp: Date.now()
-                        }
-                    },
-                    template: message
-                })
+                if(rooms.GetRoom(room_code).usage.inUse) {
+                    var sessionId = rooms.GetRoom(room_code).usage.sessionId
+                    var sessionObject = sessionManager.GetSession(sessionId)
+                    var facultyConnection = clients.faculty.GetConnection(sessionObject.session.faculty)
+                    MessageController.SendMessage({
+                        connection: facultyConnection,
+                        message: {
+                            tag: "event.student",
+                            data: {
+                                type: "join",
+                                number: records.number,
+                                seat: {
+                                    row: qrData[1],
+                                    col: qrData[2]
+                                },
+                                timestamp: Date.now()
+                            }
+                        },
+                        template: message
+                    })
 
-                sessionManager.AddEvent(sessionId, { type: "join", number: records.number, seat: { row: qrData[1], col: qrData[2] } });
+                    sessionManager.AddEvent(sessionId, { type: "join", number: records.number, seat: { row: qrData[1], col: qrData[2] } });
 
-                records.session = {
-                    token: sessionId,
-                    start: sessionObject.session.date.start.UTCTimestampMillis,
-                    room: sessionObject.session.room,
-                    course: sessionObject.session.course,
-                    facultyConnection: facultyConnection
+                    records.session = {
+                        token: sessionId,
+                        start: sessionObject.session.date.start.UTCTimestampMillis,
+                        room: sessionObject.session.room,
+                        course: sessionObject.session.course,
+                        facultyConnection: facultyConnection
+                    }
+
+                    MessageController.SendMessage({
+                        connection: connection,
+                        message: {
+                            data: {
+                                start: sessionObject.session.date.start.UTCTimestampMillis,
+                                room: sessionObject.session.room,
+                                course: sessionObject.session.course,
+                                faculty: sessionObject.session.faculty
+                            }
+                        },
+                        template: message
+                    })
+
+                    clients.student.ChangeRecord(id, records)
                 }
-
-                MessageController.SendMessage({
-                    connection: connection,
-                    message: {
-                        data: {
-                            start: sessionObject.session.date.start.UTCTimestampMillis,
-                            room: sessionObject.session.room,
-                            course: sessionObject.session.course,
-                            faculty: sessionObject.session.faculty
-                        }
-                    },
-                    template: message
-                })
-
-                clients.student.ChangeRecord(id, records)
+                else
+                    MessageController.SendMessage({
+                        connection: connection,
+                        message: {
+                            data: {},
+                            error: "No ongoing sessions in this classroom"
+                        },
+                        template: message
+                    })
             }
         }
         else {
