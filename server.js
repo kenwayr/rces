@@ -13,6 +13,8 @@ const MessageController = require('./lib/MessageController.class')
 const RoomList = require('./lib/RoomList.class')
 const CourseList = require('./lib/CourseList.class')
 const package = require('./package.json')
+const QRValidator = new RegExp(/^[^;]+;\d+;\d+$/)
+console.log(QRValidator.test("word;0;1"), QRValidator.test("210;0;1"))
 
 const upload = multer()
 
@@ -967,6 +969,9 @@ messageController.AddControl('exit', {
                 },
                 template: message
             })
+            if(account.session) {
+                rooms.SetOccupancy(account.session.room.code, account.session.nrow, account.session.ncol, false)
+            }
         }
     }
 })
@@ -1078,66 +1083,113 @@ messageController.AddControl('stop.session', {
 messageController.AddControl('join.session', {
     callback: (connection, message) => {
         var id = clients.student.GetIdentifier(connection)
+        var qrTest = QRValidator.test(message.data.qrcode)
         if(id) {
-            var records = clients.student.GetRecord(id)
-            var qrData = message.data.qrcode.split(";");
-            var room_code = qrData[0];
-            if(rooms.Has(room_code)) {
-                if(rooms.GetRoom(room_code).usage.inUse) {
-                    var sessionId = rooms.GetRoom(room_code).usage.sessionId
-                    var sessionObject = sessionManager.GetSession(sessionId)
-                    var facultyConnection = clients.faculty.GetConnection(sessionObject.session.faculty)
-                    MessageController.SendMessage({
-                        connection: facultyConnection,
-                        message: {
-                            tag: "event.student",
-                            data: {
-                                type: "join",
-                                number: records.number,
-                                seat: {
-                                    row: qrData[1],
-                                    col: qrData[2]
+            if(qrTest) {
+                console.log("HERE");
+                var records = clients.student.GetRecord(id)
+                var qrData = message.data.qrcode.split(";");
+                var room_code = qrData[0];
+                if(rooms.Has(room_code)) {
+                    if(rooms.GetRoom(room_code).usage.inUse) {
+                        if(!rooms.GetOccupancy(room_code, qrData[1], qrData[2])) {
+                            if(rooms.SetOccupancy(room_code, qrData[1], qrData[2], true)) {
+                                var sessionId = rooms.GetRoom(room_code).usage.sessionId
+                                var sessionObject = sessionManager.GetSession(sessionId)
+                                var facultyConnection = clients.faculty.GetConnection(sessionObject.session.faculty)
+                                MessageController.SendMessage({
+                                    connection: facultyConnection,
+                                    message: {
+                                        tag: "event.student",
+                                        data: {
+                                            type: "join",
+                                            number: records.number,
+                                            seat: {
+                                                row: qrData[1],
+                                                col: qrData[2]
+                                            },
+                                            timestamp: Date.now()
+                                        }
+                                    },
+                                    template: message
+                                })
+
+                                sessionManager.AddEvent(sessionId, { type: "join", number: records.number, seat: { row: qrData[1], col: qrData[2] } });
+
+                                records.session = {
+                                    token: sessionId,
+                                    start: sessionObject.session.date.start.UTCTimestampMillis,
+                                    room: sessionObject.session.room,
+                                    nrow: qrData[1],
+                                    ncol: qrData[2],
+                                    course: sessionObject.session.course,
+                                    facultyConnection: facultyConnection
+                                }
+
+                                MessageController.SendMessage({
+                                    connection: connection,
+                                    message: {
+                                        data: {
+                                            start: sessionObject.session.date.start.UTCTimestampMillis,
+                                            room: sessionObject.session.room,
+                                            course: sessionObject.session.course,
+                                            faculty: sessionObject.session.faculty
+                                        }
+                                    },
+                                    template: message
+                                })
+                                clients.student.ChangeRecord(id, records)
+                            } else {
+                                MessageController.SendMessage({
+                                    connection: connection,
+                                    message: {
+                                        data: {},
+                                        error: "This seat is not valid"
+                                    },
+                                    template: message
+                                })
+                            }
+                        } else {
+                            MessageController.SendMessage({
+                                connection: connection,
+                                message: {
+                                    data: {},
+                                    error: "This seat is already taken"
                                 },
-                                timestamp: Date.now()
-                            }
-                        },
-                        template: message
-                    })
-
-                    sessionManager.AddEvent(sessionId, { type: "join", number: records.number, seat: { row: qrData[1], col: qrData[2] } });
-
-                    records.session = {
-                        token: sessionId,
-                        start: sessionObject.session.date.start.UTCTimestampMillis,
-                        room: sessionObject.session.room,
-                        course: sessionObject.session.course,
-                        facultyConnection: facultyConnection
+                                template: message
+                            })
+                        }
                     }
-
-                    MessageController.SendMessage({
-                        connection: connection,
-                        message: {
-                            data: {
-                                start: sessionObject.session.date.start.UTCTimestampMillis,
-                                room: sessionObject.session.room,
-                                course: sessionObject.session.course,
-                                faculty: sessionObject.session.faculty
-                            }
-                        },
-                        template: message
-                    })
-
-                    clients.student.ChangeRecord(id, records)
+                    else
+                        MessageController.SendMessage({
+                            connection: connection,
+                            message: {
+                                data: {},
+                                error: "No ongoing sessions in this classroom"
+                            },
+                            template: message
+                        })
                 }
-                else
+                else {
                     MessageController.SendMessage({
                         connection: connection,
                         message: {
                             data: {},
-                            error: "No ongoing sessions in this classroom"
+                            error: "No such classroom exists"
                         },
                         template: message
                     })
+                }
+            }
+            else {
+                MessageController.SendMessage({
+                    connection: connection,
+                    message: {
+                        data: {},
+                        error: "QR Code is not valid"
+                    },
+                    template: message
+                })
             }
         }
         else {
@@ -1273,6 +1325,7 @@ database.Init().then(() => {
         ws.on('message', (message) => {
             try {
                 var messageObject = JSON.parse(message)
+                console.log(messageObject.tag);
                 messageController.Eval(ws, messageObject)
             } catch(e) {
                 Logger.Error(e)

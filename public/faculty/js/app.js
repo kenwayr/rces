@@ -44,6 +44,12 @@ var app = new Vue({
                     n = n + '';
                     return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
                 },
+                format(object) {
+                    if(object.hasOwnProperty('Date') && object.hasOwnProperty('Month') && object.hasOwnProperty('Year'))
+                        return this.pad(object.Date, 2) + '/' + this.pad(object.Month, 2) + '/' + object.Year;
+                    else if(object.hasOwnProperty('Hours') && object.hasOwnProperty('Minutes') && object.hasOwnProperty('Seconds'))
+                        return object.Hours + ':' + this.pad(object.Minutes, 2) + ':' + this.pad(object.Seconds, 2);
+                },
                 LoadCourses () {
                     CentralBus.$emit('update.courses')
                 },
@@ -96,6 +102,17 @@ var app = new Vue({
                 },
                 GetSesssions () {
                     CentralBus.$emit('get.sessions');
+                },
+                Export(session) {
+                    var studentData = DataManager.ExtractStudentData(session);
+                    var csv = DataManager.ToCSV({map: studentData});
+                    var encoded = encodeURI("data:text/csv;charset=utf-8," + csv);
+                    var link = document.createElement("a");
+                    link.setAttribute("href", encoded);
+                    link.setAttribute("download", "data.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                 }
             },
             created () {
@@ -119,12 +136,14 @@ var app = new Vue({
                         this.roomViewer.SetStatus(event.seat.row, event.seat.col, 2);
                     }
                     else if(event.type === "app.foreground") {
+                        console.log(event);
                         var record = this.students.get(event.number);
                         record.active = true;
                         this.students.set(record.number, record);
                         this.roomViewer.SetStatus(record.seat.row, record.seat.col, 2);
                     }
                     else if(event.type === "app.background") {
+                        console.log(event);
                         var record = this.students.get(event.number);
                         record.active = false;
                         this.students.set(record.number, record);

@@ -86,8 +86,27 @@
             </div>
             <button class="pure-button pure-button-primary" v-on:click="StartSession">Start</button>
             <div>
-                <ul>
-                    <li v-for="session in sessionList">[{{session.date.start.Date}}/{{session.date.start.Month}}/{{session.date.start.Year}}] - {{session.course.code}}, {{session.room.code}}</li>
+                <ul class="session-list">
+                    <li class="session" v-for="session in sessionList">
+                        <div class="pure-g">
+                            <div class="session-date pure-u-1-2">
+                                {{format(session.date.start)}}
+                            </div>
+                            <div class="session-room pure-u-1-2">
+                                Room {{session.room.code}}
+                            </div>
+                        </div>
+                        <hr>
+                        <div>
+                            <p>{{session.course.title}} ({{session.course.code}})</p>
+                            <p><b>Duration</b> {{format(session.duration)}}</p>
+                        </div>
+                        <div>
+                            <b>Export</b>
+                            <button class="pure-button pure-button-primary" v-on:click="Export(session)">Data</button>
+                            <button class="pure-button pure-button-secondary">Recording</button>
+                        </div>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -107,7 +126,7 @@
             </div>
             <div>
                 <canvas ref="RoomView" style="display: block; margin: 0 auto;"></canvas>
-                <img src="./assets/icons/laptop.svg" style="width: 30px; display: block; margin: 0 auto;">
+                <img src="../common/assets/icons/laptop.svg" style="width: 30px; display: block; margin: 0 auto;">
             </div>
             <button class="pure-button pure-button-primary" v-on:click="EndSession">End</button>
         </div>
@@ -186,6 +205,8 @@
 </script>
 
 <script src="../common/js/axios.min.js"></script>
+
+<script src="../common/js/data.manager.js"></script>
 
 <script src="./js/waver.class.js"></script>
 

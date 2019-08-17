@@ -2,7 +2,6 @@ class RoomEditor {
     constructor(target, {activeSeatSrc, inactiveSeatSrc, cellWidth = 25, cellHeight = 25, cellPadding = 5, panSensitivity = 1}) {
         this.canvas = target;
         this.context = target.getContext('2d');
-        this.boundaries = target.getBoundingClientRect();
         this.seats = {
             active: {
                 image: new Image(),
@@ -38,6 +37,7 @@ class RoomEditor {
     Init() {
         return new Promise((resolve, reject) => {
             this.canvas.addEventListener('mousedown', (e) => {
+                this.boundaries = this.canvas.getBoundingClientRect();
                 var clientX = e.clientX - this.boundaries.left;
                 var clientY = e.clientY - this.boundaries.top;
                 this.lastCell = {r: -1, c: -1};
@@ -56,6 +56,7 @@ class RoomEditor {
                 this.config.savedContextTransform.y = this.config.contextTransform.y;
             });
             this.mouseEvaluator = (e) => {
+                this.boundaries = this.canvas.getBoundingClientRect();
                 var clientX = e.clientX - this.boundaries.left;
                 var clientY = e.clientY - this.boundaries.top;
                 if(this.drawingMode) {

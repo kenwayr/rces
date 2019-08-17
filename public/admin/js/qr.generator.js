@@ -7,7 +7,7 @@ class QRGenerator {
             label: document.createElement('span')
         };
         this.template.container.style = 'display: inline-block; margin: 20px;';
-        this.template.image.style = 'display: block;margin-bottom: 20px;';
+        this.template.image.style = 'display: block;margin:25px;';
         this.template.label.style = 'display: block; text-align: center; font-size: 12pt; font-weight: bold; color: #000;';
         this.codes = [];
     }
@@ -22,8 +22,8 @@ class QRGenerator {
             var image = this.template.image.cloneNode();
             var qrcode = new QRCode(image, {
                 text: this.codes[i].code,
-                width: 128,
-                height: 128,
+                width: 256,
+                height: 256,
                 colorDark : "#000000",
                 colorLight : "#ffffff",
                 correctLevel : QRCode.CorrectLevel.H

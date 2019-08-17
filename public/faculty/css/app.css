@@ -274,3 +274,25 @@ body {
     text-align: center;
     color: #73879C;
 }
+/* Session List */
+.session-list {
+    display: block;
+    padding: 0;
+    font-size: 10pt;
+}
+.session-date {
+    text-align: left;
+}
+.session-room {
+    text-align: right;
+    color: #262626;
+    font-weight: bold;
+}
+.session {
+    display: block;
+    list-style: none;
+    border: 1px solid #1b1b1b;
+    background-color: #fff;
+    border-radius: 4px;
+    padding: 20px;
+}

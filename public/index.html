@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Hello World - Heroku</title>
+    <title>RCES</title>
     <link href="https://fonts.googleapis.com/css?family=Raleway:300,500&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="./index.css">
@@ -27,7 +27,7 @@
                     Rapid Classroom Evaluation System
                 </p>
                 <p>
-                    <a href="#" class="pure-button pure-button-theme">Download App</a>
+                    <a href="./downloads/rces.apk" class="pure-button pure-button-theme">Download App - V{{app.version}}</a>
                 </p>
             </div>
         </div>
@@ -53,8 +53,19 @@
                     </div>
                 </div>
             </div>
-            <div style="">
-
+            <div style="margin-top:10px;padding:20px;background-color:rgb(39, 39, 39);color:#fff;text-align:center;">
+                <div class="pure-g">
+                    <div class="pure-u-1 pure-u-md-1-2">
+                        <i class="icon records" style="width:100px;height:100px;"></i>
+                    </div>
+                    <div class="pure-u-1 pure-u-md-1-2">
+                        <h2 style="color:#fff;">About</h2>
+                        <p>
+                            &copy; 2019 Developers
+                        </p>
+                        <p>This content is released under <a style="text-decoration:none;color:rgb(58, 118, 209);font-weight:bolder;" href="https://opensource.org/licenses/MIT">MIT License</a></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -63,7 +74,10 @@
         var app = new Vue({
             el: "#app",
             data: {
-                message: "Hello World!"
+                message: "Hello World!",
+                app: {
+                    version: '0.0.1'
+                }
             }
         })
     </script>
