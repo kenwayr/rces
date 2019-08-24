@@ -36,9 +36,29 @@ var app = new Vue({
                 computedCurrentTime () {
                     var diff = new Date(this.currentTime - this.session.start);
                     return this.pad(diff.getUTCHours(), 2) + ':' + this.pad(diff.getUTCMinutes(),2) + ':' + this.pad(diff.getUTCSeconds(),2);
+                },
+                computedDoubtCount () {
+                    return this.session.events.filter((v) => v.type === "doubt").length;
+                },
+                computedRepeatCount () {
+                    return this.session.events.filter((v) => v.type === "repeat").length;
+                },
+                computedExplainCount () {
+                    return this.session.events.filter((v) => v.type === "explain").length;
+                },
+                computedClearCount () {
+                    return this.session.events.filter((v) => v.type === "clear").length;
                 }
             },
             methods: {
+                activeDeviceCount () {
+                    var count = 0;
+                    for([key,value] of this.students) {
+                        if(value.active)
+                            count++;
+                    }
+                    return count;
+                },
                 pad(n, width, z) {
                     z = z || '0';
                     n = n + '';
@@ -133,6 +153,7 @@ var app = new Vue({
 
                     if(event.type === "join") {
                         this.students.set(event.number, { number: event.number, seat: event.seat, active: true });
+                        console.log(this.students);
                         this.roomViewer.SetStatus(event.seat.row, event.seat.col, 2);
                     }
                     else if(event.type === "app.foreground") {
@@ -205,6 +226,367 @@ var app = new Vue({
                     CentralBus.$emit('add.course', { code: this.code, title: this.title, start: this.start, remarks: this.remarks });
                 }
             }
+        },
+        analytics: {
+            template: '#analytics-template',
+            props: ['records'],
+            data () {
+                return {
+                    sessions: [],
+                    sessionAnalysisData: {
+                        recording: null,
+                        date: null,
+                        students: [],
+                        focus: {
+                            name: '',
+                            roll_number: '',
+                            events: [],
+                            number: '',
+                            gender: ''
+                        }
+                    },
+                    activeState: 'list',
+                    waveforms: {
+                        session: null,
+                        focused: null
+                    }
+                };
+            },
+            methods: {
+                GetSesssions () {
+                    CentralBus.$emit('get.sessions');
+                },
+                pad(n, width, z) {
+                    z = z || '0';
+                    n = n + '';
+                    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+                },
+                format(object) {
+                    if(object.hasOwnProperty('Date') && object.hasOwnProperty('Month') && object.hasOwnProperty('Year'))
+                        return this.pad(object.Date, 2) + '/' + this.pad(object.Month, 2) + '/' + object.Year;
+                    else if(object.hasOwnProperty('Hours') && object.hasOwnProperty('Minutes') && object.hasOwnProperty('Seconds'))
+                        return object.Hours + ':' + this.pad(object.Minutes, 2) + ':' + this.pad(object.Seconds, 2);
+                },
+                LinearRegression(x,y){
+                    var lr = {};
+                    var n = y.length;
+                    var sum_x = 0;
+                    var sum_y = 0;
+                    var sum_xy = 0;
+                    var sum_xx = 0;
+                    var sum_yy = 0;
+            
+                    for (var i = 0; i < y.length; i++) {
+            
+                        sum_x += x[i];
+                        sum_y += y[i];
+                        sum_xy += (x[i]*y[i]);
+                        sum_xx += (x[i]*x[i]);
+                        sum_yy += (y[i]*y[i]);
+                    } 
+            
+                    lr['slope'] = (n * sum_xy - sum_x * sum_y) / (n*sum_xx - sum_x * sum_x);
+                    lr['intercept'] = (sum_y - lr.slope * sum_x)/n;
+                    lr['r2'] = Math.pow((n*sum_xy - sum_x*sum_y)/Math.sqrt((n*sum_xx-sum_x*sum_x)*(n*sum_yy-sum_y*sum_y)),2);
+            
+                    return lr;
+                },
+                DrawLinearChart(x, y, label, data, ref, themeColor='#2196f3') {
+                    var regressionLine = this.LinearRegression(data[x], data[y]);
+
+                    var chart = new Chart(ref, {
+                        type: 'scatter',
+                        data: {
+                            datasets: [
+                                {
+                                    label: 'Regression Line',
+                                    data: [{
+                                        x: 0,
+                                        y: regressionLine.intercept
+                                    },
+                                    {
+                                        x: data.max[x],
+                                        y: data.max[x] * regressionLine.slope + regressionLine.intercept
+                                    }],
+                                    type: 'line',
+                                    pointBackgroundColor: '#1c1c1c',
+                                    borderColor: '#1c1c1c',
+                                    showLine: true
+                                },
+                                {
+                                    label: label,
+                                    data: data.repeat.map((v, i) => { return { y: v, x: data[y][i] }; } ),
+                                    backgroundColor: themeColor
+                                }
+                            ]
+                        },
+                        options: {
+                            scales: {
+                                xAxes: [{
+                                    type: 'linear',
+                                    position: 'bottom'
+                                }]
+                            }
+                        }
+                    });
+                    CentralBus.$on('re.analyse', () => {
+                        chart.destroy();
+                    });
+                },
+                DrawPieChart(type, map, ref) {
+                    var data = [], labels = [], bgs=[];
+                    for([key,value] of map) {
+                        data.push(value[type]);
+                        labels.push(value['roll_number'] + ' (' + key + ')');
+                    }
+                    for(var i=1; i <= data.length; i++) {
+                        bgs.push('rgb(' + 255*Math.random() + ', ' + 255*Math.random() +', ' + 255*Math.random() +')');
+                    }
+                    console.log(data,labels);
+                    var chart = new Chart(ref, {
+                        type: 'pie',
+                        data: {
+                            datasets: [{
+                                data: data,
+                                backgroundColor: bgs
+                            }],
+                            labels: labels
+                        },
+                        options: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    });
+                    CentralBus.$on('re.analyse', () => {
+                        chart.destroy();
+                    });
+                },
+                DrawRadarChart(labels, data, ref) {
+                    var chart = new Chart(ref, {
+                        type: 'radar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: "Comparison",
+                                data: data,
+                                fill: true,
+                                backgroundColor: 'rgba(50, 98, 168, 0.5)'
+                            }]
+                        }
+                    });
+                    CentralBus.$on('re.focus', () => {
+                        chart.destroy();
+                    });
+                },
+                Analyse(session) {
+                    var studentData = DataManager.ExtractStudentData(session);
+                    var numbers = Array.from(studentData.keys());
+
+                    var regions = [];
+
+                    for(var i=0,fg=0; i < session.events.length; i++) {
+                        var start = (session.events[i].timestamp - session.date.start.UTCTimestampMillis) / 1000;
+                        if(session.events[i].type === 'doubt') {
+                            regions.push({ start: start, end: start + 10, drag: false, color: 'rgba(0, 0, 255, 0.8)' })
+                        }
+                        else if(session.events[i].type === 'repeat') {
+                            regions.push({ start: start, end: start + 10, drag: false, color: 'rgba(0, 255, 0, 0.8)' })
+                        }
+                        else if(session.events[i].type === 'explain') {
+                            regions.push({ start: start, end: start + 10, drag: false, color: 'rgba(255, 0, 0, 0.8)' })
+                        }
+                    }
+
+                    if(this.waveforms.session)
+                        this.waveforms.session.destroy();
+                    var wavesurfer = WaveSurfer.create({
+                        container: this.$refs.sessionAudioWaveform,
+                        waveColor: '#A8DBA8',
+                        progressColor: '#3B8686',
+                        backend: 'MediaElement',
+                        plugins: [
+                            WaveSurfer.regions.create({
+                                regions: regions
+                            })
+                        ]
+                    });
+                    wavesurfer.load("../resource?id=" + session.recording + "&a=stream");
+                    this.waveforms.session = wavesurfer;
+
+                    CentralBus.$emit('update.students', {}, () => {
+                        
+                        for(var i=0; i < this.records.students.length; i++) {
+                            if(numbers.includes(this.records.students[i].number)) {
+                                studentData.get(this.records.students[i].number).name = this.records.students[i].name;
+                                studentData.get(this.records.students[i].number).roll_number = this.records.students[i].roll_number;
+                                studentData.get(this.records.students[i].number).gender = this.records.students[i].gender;
+                            }
+                        }
+                        
+                        this.sessionAnalysisData.recording = session.recording;
+                        this.sessionAnalysisData.students = Array.from(studentData.values());
+                        this.sessionAnalysisData.date = session.date;
+
+                        console.log(this.sessionAnalysisData.students);
+
+                        var data = {
+                            doubt: [],
+                            repeat: [],
+                            explain: [],
+                            clear: [],
+                            max: {
+                                doubt: 0,
+                                repeat: 0,
+                                explain: 0,
+                                clear: 0
+                            }
+                        };
+                        
+                        for([key, value] of studentData) {
+                            data.doubt.push(value.doubt);
+                            data.repeat.push(value.repeat);
+                            data.explain.push(value.explain);
+                            data.clear.push(value.clear);
+                        }
+    
+                        data.max.doubt = Math.max.apply(null, data.doubt);
+                        data.max.repeat = Math.max.apply(null, data.repeat);
+                        data.max.explain = Math.max.apply(null, data.explain);
+                        data.max.clear = Math.max.apply(null, data.clear);
+    
+                        CentralBus.$emit('re.analyse');
+    
+                        this.DrawLinearChart('repeat', 'doubt', 'Repeat vs Doubt', data, this.$refs.repeatDoubtChart);
+                        this.DrawLinearChart('explain', 'doubt', 'Explain vs Doubt', data, this.$refs.explainDoubtChart, '#fcad03');
+                        this.DrawLinearChart('clear', 'doubt', 'Clear vs Doubt', data, this.$refs.clearDoubtChart, '#03fc45');
+                        this.DrawLinearChart('clear', 'repeat', 'Clear vs Repeat', data, this.$refs.clearRepeatChart, '#9803fc');
+                        this.DrawLinearChart('explain', 'repeat', 'Explain vs Repeat', data, this.$refs.explainRepeatChart, '#fc5a03');
+                        this.DrawLinearChart('explain', 'clear', 'Explain vs Clear', data, this.$refs.explainClearChart, '#fc0303');
+                        
+                        this.DrawPieChart('doubt', studentData, this.$refs.doubtPieChart);
+                        this.DrawPieChart('repeat', studentData, this.$refs.repeatPieChart);
+                        this.DrawPieChart('explain', studentData, this.$refs.explainPieChart);
+                        this.DrawPieChart('clear', studentData, this.$refs.clearPieChart);
+
+                        this.activeState = 'overview';
+                    });
+                },
+                FocusedAnalysis(student) {
+
+                    CentralBus.$emit('re.focus');
+
+                    if(this.waveforms.session)
+                        this.waveforms.session.stop();
+
+                    this.sessionAnalysisData.focus = student;
+
+                    var regions = [];
+
+                    for(var i=0,fg=0; i < student.events.length; i++) {
+                        if(student.events[i].type === 'app.foreground') {
+                            fg = student.events[i].timestamp;
+                        }
+                        else if(student.events[i].type === 'app.background') {
+                            regions.push({ start: (fg - this.sessionAnalysisData.date.start.UTCTimestampMillis) / 1000, end: (student.events[i].timestamp - this.sessionAnalysisData.date.start.UTCTimestampMillis) / 1000, drag: false, color: 'rgba(63, 129, 235, 0.4)' });
+                        }
+                        else {
+                            var start = (student.events[i].timestamp - this.sessionAnalysisData.date.start.UTCTimestampMillis) / 1000;
+                            if(student.events[i].type === 'doubt') {
+                                regions.push({ start: start, end: start + 10, drag: false, color: 'rgba(0, 0, 255, 0.8)' })
+                            }
+                            else if(student.events[i].type === 'repeat') {
+                                regions.push({ start: start, end: start + 10, drag: false, color: 'rgba(0, 255, 0, 0.8)' })
+                            }
+                            else if(student.events[i].type === 'explain') {
+                                regions.push({ start: start, end: start + 10, drag: false, color: 'rgba(255, 0, 0, 0.8)' })
+                            }
+                        }
+                    }
+
+                    console.log(regions);
+
+                    if(this.waveforms.focused)
+                        this.waveforms.focused.destroy();
+                    var wavesurfer = WaveSurfer.create({
+                        container: this.$refs.focusedAudioWaveform,
+                        waveColor: '#A8DBA8',
+                        progressColor: '#3B8686',
+                        backend: 'MediaElement',
+                        plugins: [
+                            WaveSurfer.regions.create({
+                                regions: regions
+                            })
+                        ]
+                    });
+                    wavesurfer.load("../resource?id=" + this.sessionAnalysisData.recording + "&a=stream");
+                    this.waveforms.focused = wavesurfer;
+
+                    this.DrawRadarChart(["Doubt", "Repeat", "Explain", "Clear"], [student.doubt, student.repeat, student.explain, student.clear], this.$refs.focusedRadarChart);
+
+                    this.activeState = 'focused';
+                },
+                ToggleSessionWaveform() {
+                    if(this.waveforms.session)
+                        this.waveforms.session.playPause();
+                },
+                ToggleFocusedWaveform() {
+                    if(this.waveforms.focused)
+                        this.waveforms.focused.playPause();
+                },
+                HideAnalysis() {
+                    if(this.waveforms.session)
+                        this.waveforms.session.stop();
+                    this.activeState = 'list';
+                },
+                HideFocusedAnalysis() {
+                    if(this.waveforms.focused)
+                        this.waveforms.focused.stop();
+                    this.activeState = 'overview';
+                }
+            },
+            mounted() {
+                CentralBus.$on('set.sessions', (sessions) => {
+                    this.sessions = sessions;
+                });
+                this.GetSesssions();
+            }
+        },
+        settings: {
+            template: '#settings-template',
+            props: ['self'],
+            data () {
+                return {
+
+                };
+            },
+            methods: {
+                uploadPhoto () {
+                    var file = document.createElement('input');
+                    file.type = 'file';
+                    file.value = '';
+                    file.addEventListener("change", (e) => {
+                        console.log(e);
+                        var data = new FormData();
+                        data.append("type", "dp");
+                        data.append("file", file.files[0]);
+                        axios.post('/upload', data).then((response) => {
+                            var id = response.data.id;
+                            CentralBus.$emit("set.me", { $set: { dp: id } });
+                        });
+                    }, false);
+                    file.click();
+                }
+            },
+            computed: {
+
+            },
+            created () {
+
+            },
+            mounted () {
+
+            }
         }
     },
     data: {
@@ -221,11 +603,22 @@ var app = new Vue({
                 title: "Course Manager",
                 icon: "records",
                 link: "courseManager"
+            },
+            {
+                title: "Analytics",
+                icon: "analytics",
+                link: "analytics"
+            },
+            {
+                title: "Settings",
+                icon: "settings",
+                link: "settings"
             }
         ],
         dynamicData: {
             self: {
-                username: null
+                username: null,
+                dp: null
             },
             notification: {
                 active: false,
@@ -323,11 +716,20 @@ var app = new Vue({
         }
     },
     created () {
-        CentralBus.$on('update.students', () => {
-            this.socket.Get("students", {}, (message) => {
-                this.dynamicData.records.students = message.data;
-                this.update('records');
-            });
+        CentralBus.$on('update.students', (filters = null, callback = () => {}) => {
+            console.log("Updating");
+            if(filters)
+                this.socket.Get("students", filters, (message) => {
+                    this.dynamicData.records.students = message.data;
+                    this.update('records');
+                    callback();
+                });
+            else
+                this.socket.Get("students", {}, (message) => {
+                    this.dynamicData.records.students = message.data;
+                    this.update('records');
+                    callback();
+                });
         });
         CentralBus.$on('add.course', (data) => {
             this.socket.Add('course', data, (message) => {
@@ -365,7 +767,20 @@ var app = new Vue({
                 console.log(message);
                 CentralBus.$emit('set.sessions', message.data);
             })
-        })
+        });
+
+        CentralBus.$on('get.me', () => {
+            this.socket.Get('me', {}, (message) => {
+                this.dynamicData.self = message.data;
+            });
+        });
+
+        CentralBus.$on('set.me', (data) => {
+            this.socket.Set('me', data, (message) => {
+                console.log(message);
+                window.location.reload();
+            })
+        });
 
         this.socket.On('event.student', (message) => {
             CentralBus.$emit('event.student', message.data);
@@ -398,6 +813,7 @@ var app = new Vue({
                         else {
                             this.dynamicData.self.username = username;
                             CentralBus.$emit('login.done');
+                            CentralBus.$emit('get.me');
                         }
                     });
                 }

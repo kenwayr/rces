@@ -93,6 +93,9 @@ body {
     .navbar {
         min-width: 0px;
     }
+    .holder {
+        text-align: center;
+    }
 }
 
 /* CONTENT */
@@ -295,4 +298,11 @@ body {
     background-color: #fff;
     border-radius: 4px;
     padding: 20px;
+}
+/* PURE CSS EXTENSIONS */
+.button-action {
+    color: white !important;
+    border-radius: 4px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    background-color: rgb(66, 184, 221) !important; /* this is a light blue */
 }

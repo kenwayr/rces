@@ -5,10 +5,12 @@ const WebSocket = require('ws')
 const compression = require('compression')
 const multer = require('multer')
 const uniqid = require('uniqid')
+const path = require('path')
 const Logger = require('./lib/Logger.class')
 const DatabaseObject = require('./lib/DatabaseObject.class')
 const ClientList = require('./lib/ClientList.class')
 const SessionManager = require('./lib/SessionManager.class')
+const ResourceManager = require('./lib/ResourceManager.class')
 const MessageController = require('./lib/MessageController.class')
 const RoomList = require('./lib/RoomList.class')
 const CourseList = require('./lib/CourseList.class')
@@ -25,9 +27,9 @@ const config = {
 
 const app = express()
 
-const sessionManager = new SessionManager({
-    assetsPath: config.assets
-})
+const sessionManager = new SessionManager()
+
+const resourceManager = new ResourceManager()
 
 const messageController = new MessageController()
 
@@ -496,6 +498,9 @@ messageController.AddControl("set.me", {
         var id
         if(id = clients.student.GetIdentifier(connection)) {
             var record = clients.student.GetRecord(id)
+            if(message.data.$set && message.data.$set.dp && record.dp) {
+                resourceManager.RemoveResource(record.dp);
+            }
             database.UpdateStudent(record.number, message.data).then((updated) => {
                 clients.student.ChangeRecord(record.number, updated)
                 MessageController.SendMessage({
@@ -523,6 +528,9 @@ messageController.AddControl("set.me", {
         }
         else if(id = clients.faculty.GetIdentifier(connection)) {
             var record = clients.faculty.GetRecord(id)
+            if(message.data.$set && message.data.$set.dp && record.dp) {
+                resourceManager.RemoveResource(record.dp);
+            }
             database.UpdateAccount('faculty', record.username, message.data).then((updated) => {
                 clients.faculty.ChangeRecord(record.username, updated)
                 MessageController.SendMessage({
@@ -550,6 +558,9 @@ messageController.AddControl("set.me", {
         }
         else if(id = clients.admin.GetIdentifier(connection)) {
             var record = clients.admin.GetRecord(id)
+            if(message.data.$set && message.data.$set.dp && record.dp) {
+                resourceManager.RemoveResource(record.dp);
+            }
             database.UpdateAccount('admin', record.username, message.data).then((updated) => {
                 clients.faculty.ChangeRecord(record.username, updated)
                 MessageController.SendMessage({
@@ -994,7 +1005,8 @@ messageController.AddControl('start.session', {
                 })
             else {
                 if(!rooms.GetRoom(message.data.room.code).usage.inUse) {
-                    var token = sessionManager.StartSession(id, message.data.course, message.data.room)
+                    var recordingResourceId = resourceManager.CreateResource({ filename: 'recording.ogg', type: 'recording' })
+                    var token = sessionManager.StartSession(id, message.data.course, message.data.room, recordingResourceId, resourceManager.GetResourceWriteStream(recordingResourceId))
                     rooms.SetSession(message.data.room.code, token);
                     records.session = { active: true, token: token, room_code: message.data.room.code, course_code: message.data.course.code }
                     clients.faculty.ChangeRecord(id, records)
@@ -1245,6 +1257,10 @@ database.Init().then(() => {
         courses.AddCourses(list)
     })
 
+    database.LoadResources().then((list) => {
+        resourceManager.AddResources(list)
+    })
+
     app.use(compression())
     app.use(express.static('public'))
 
@@ -1274,25 +1290,35 @@ database.Init().then(() => {
     app.post('/upload', upload.fields([
         {name: "token", maxCount: 1},
         {name: "type", maxCount: 1},
-        {name: "file", maxCount: 1},
-        {name: "chunk", maxCount: 1}
+        {name: "file", maxCount: 1}
     ]), (req, res) => {
         var token = req.body.token
         var type = req.body.type
         var file = req.files.file[0]
-        if(!sessionManager.Has(token)) {
-            res.end(JSON.stringify({
-                error: true,
-                status: "No such session recorded"
-            }))
+        if(token) {
+            if(!sessionManager.Has(token)) {
+                res.end(JSON.stringify({
+                    error: true,
+                    status: "No such session recorded"
+                }))
+            }
+            else {
+                var id = null
+                if(type === "media") {
+                    id = resourceManager.CreateResource({filename: file.originalname, type: 'media'}, file)
+                    sessionManager.AddResource(token, id)
+                } else {
+                    sessionManager.AddMediaChunk(token, file.buffer)
+                }
+                res.end(JSON.stringify({
+                    error: false,
+                    status: "Done",
+                    id: id
+                }))
+            }
         }
         else {
-            var id = null
-            if(type === "media") {
-                id = sessionManager.AddResource(token, file)
-            } else {
-                sessionManager.AddMediaChunk(token, file.buffer)
-            }
+            var id = resourceManager.CreateResource({filename: file.originalname, type: type || 'media'}, file)
             res.end(JSON.stringify({
                 error: false,
                 status: "Done",
@@ -1301,23 +1327,31 @@ database.Init().then(() => {
         }
     })
 
-    app.post('/resource', upload.fields([
-        {name: "token", maxCount: 1},
-        {name: "id", maxCount: 1}
+    app.get('/resource', upload.fields([
+        {name: "id", maxCount: 1},
+        {name: "a", maxCount: 1}
     ]), (req, res) => {
-        
-        var token = req.body.token || null
-        var id = req.body.id
+        var id = req.query.id
+        var action = req.query.a
+        if(resourceManager.Has(id)) {
+            var resource = resourceManager.GetResource(id)
+            if(action && action === 'stream') {
 
-        var resource = sessionManager.GetResource({
-            token: token,
-            resource_id: id
-        })
-        
-        if(resource.type === "media")
-            res.sendFile(config.assets + "/media/" + resource.name)
+                var stat = resourceManager.GetResourceStats(id)
+                
+                res.writeHead(200, {
+                    'Content-Type': 'audio/ogg',
+                    'Content-Length': stat.size
+                })
+
+                var stream = resourceManager.GetResourceReadStream(id)
+                stream.pipe(res)
+
+            } else
+                res.download(resourceManager.base + id, resource.filename)
+        }
         else
-            res.sendFile(config.assets + "/recording/" + resource.name)
+            res.end()
     })
 
     wss.on('connection', (ws) => {
@@ -1352,9 +1386,11 @@ sigs.forEach(sig => {
         httpserver.close()
         database.SaveRooms(rooms.GetRooms()).then((res) => {
             database.SaveCourses(courses.GetCourses()).then((res) => {
-                database.Close()
-                console.log("Done.")
-                process.exit(0)
+                database.SaveResources(resourceManager.GetResources()).then((res) => {
+                    database.Close()
+                    console.log("Done.")
+                    process.exit(0)
+                })
             })
         })
     })

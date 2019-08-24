@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <audio src="./resource?id=5d5da11c61781f2640ad9c7b&action=stream" controls></audio>
+    <audio src="./resource?id=5d5da11c61781f2640ad9c7b" controls></audio>
+
+    <div id="test"></div>
+
+    <button onclick="Start()">start</button>
+
+    <script src="./common/js/wavesurfer.min.js"></script>
+    <script src="./common/js/wavesurfer.regions.min.js"></script>
+    <script>
+        var wavesurfer;
+        function Start() {
+            wavesurfer = WaveSurfer.create({
+                container: document.getElementById('test'),
+                waveColor: '#A8DBA8',
+                progressColor: '#3B8686',
+                backend: 'MediaElement',
+                plugins: [
+                    WaveSurfer.regions.create({
+                        regions: []
+                    })
+                ]
+            });
+            wavesurfer.load("./resource?id=5d5da11c61781f2640ad9c7b&a=stream");
+            wavesurfer.on('ready', function () {
+                wavesurfer.play();
+            });
+        }
+    </script>
+</body>
+</html>

@@ -15,8 +15,11 @@ class DataManager {
                     students.get(data.events[i].number)._last = data.events[i].timestamp;
                 else if(data.events[i].type === "app.background")
                     students.get(data.events[i].number).time += data.events[i].timestamp - students.get(data.events[i].number)._last;
+                
+                students.get(data.events[i].number).events.push(data.events[i]);
+
             } else if(data.events[i].type === "join")
-                students.set(data.events[i].number, { doubt: 0, explain: 0, repeat: 0, clear: 0, time: 0, _last: data.events[i].timestamp });
+                students.set(data.events[i].number, { number: data.events[i].number, doubt: 0, explain: 0, repeat: 0, clear: 0, time: 0, _last: data.events[i].timestamp, events: [ data.events[i] ] });
         }
         return students;
     }

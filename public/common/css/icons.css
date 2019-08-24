@@ -63,3 +63,6 @@
     background-image: url(../assets/icons/chevron.svg);
     transform: rotateZ(180deg);
 }
+.icon.play-pause {
+    background-image: url(../assets/icons/play-pause.svg);
+}
