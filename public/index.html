@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>RCES</title>
-    <link href="https://fonts.googleapis.com/css?family=Raleway:300,500&display=swap" rel="stylesheet">
+    <title>FIRE</title>
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,500&display=swap" rel="stylesheet" async defer>
 
     <link rel="stylesheet" href="./index.css">
 
@@ -17,14 +17,14 @@
 </head>
 <body>
     <div id="app">
-        <div class="parallax-bg" style="background-color:#1f8dd6;color:#ffffff;">
+        <div class="parallax-bg animated-bg-red" style="color:#ffffff;">
             <div class="head-section">
                 <div style="display:inline-block;padding:5px 80px;border:3px solid #fff;border-radius:5px;">
-                    <i class="icon crosshair" style="width:50px;height:50px;"></i>
-                    <h3 style="display:inline-block;font-size:250%;vertical-align:middle;color:#ffffff;">RCES</h3>
+                    <i class="icon fire-mono alt" style="width:50px;height:50px;"></i>
+                    <h3 style="display:inline-block;font-size:250%;vertical-align:middle;color:#ffffff;">FIRE</h3>
                 </div>
                 <p style="font-family:'Raleway',sans-serif;margin-bottom:50px;">
-                    Rapid Classroom Evaluation System
+                    Formative Interaction and Rapid Evaluation
                 </p>
                 <p>
                     <a href="./downloads/rces.apk" class="pure-button pure-button-theme">Download App - V{{app.version}}</a>
@@ -41,7 +41,7 @@
                         <p style="max-width:250px;margin:0 auto;padding:20px;text-align:justify;font-family:'Raleway',sans-serif;">
                             Manage rooms, create admin and faculty accounts, restrict student access, analyse overall activity.
                         </p>
-                        <a href="./admin/" class="pure-button pure-button-primary" style="text-transform:uppercase">Sign In</a>
+                        <a href="./admin/" class="pure-button pure-button-theme-alt" style="text-transform:uppercase">Sign In</a>
                     </div>
                     <div class="pure-u-1 pure-u-md-1-2">
                         <i class="icon alt account"></i>
@@ -49,7 +49,7 @@
                         <p style="max-width:250px;margin:0 auto;padding:20px;text-align:justify;font-family:'Raleway',sans-serif;">
                             View student records, manage courses, organize classroom sessions, analyse student and class data.
                         </p>
-                        <a href="./faculty/" class="pure-button pure-button-primary" style="text-transform:uppercase">Sign In</a>
+                        <a href="./faculty/" class="pure-button pure-button-theme-alt" style="text-transform:uppercase">Sign In</a>
                     </div>
                 </div>
             </div>
@@ -74,9 +74,8 @@
         var app = new Vue({
             el: "#app",
             data: {
-                message: "Hello World!",
                 app: {
-                    version: '0.0.1'
+                    version: '0.0.2'
                 }
             }
         })

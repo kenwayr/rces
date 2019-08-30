@@ -66,3 +66,9 @@
 .icon.play-pause {
     background-image: url(../assets/icons/play-pause.svg);
 }
+.icon.fire {
+    background-image: url(../assets/icons/fire.svg);
+}
+.icon.fire-mono {
+    background-image: url(../assets/icons/fire-mono.svg);
+}

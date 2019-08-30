@@ -28,7 +28,26 @@ h1,h2,h3,h4,h5,h6,label {
 }
 .pure-button-theme {
     background: white !important;
-    color: #1f8dd6 !important;
+    color: #d6341f !important;
     border-radius: 5px !important;
     font-size: 120% !important;
+}
+.pure-button-theme-alt {
+    background: #d8412d !important;
+    color: white !important;
+    border-radius: 5px !important;
+    font-size: 120% !important;
+}
+.animated-bg-red {
+    background-color:#d6341f;
+    animation: flame 2s ease-in-out 0s infinite alternate;
+}
+
+@keyframes flame {
+    from {
+        background-color:#d6341f;
+    }
+    to {
+        background-color:#dd5432;
+    }
 }
