@@ -131,7 +131,7 @@
             <div>
                 <p> <b>Room: </b> {{session.room.code}} </p>
                 <p> <b>Course: </b> {{session.course.title}} ({{session.course.code}})  </p>
-                <p> <b>Time: </b> {{ computedCurrentTime }}</p>
+                <p> <b>Time: </b> {{ formattedCurrentTime() }}</p>
             </div>
             <div>
                 <canvas ref="WaveCanvas" width="720" height="220"></canvas>

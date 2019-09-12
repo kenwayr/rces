@@ -1,12 +1,15 @@
 * {
     box-sizing: border-box;
 }
+body {
+    margin: 0;
+}
 img {
     margin: 0 auto;
 }
 .card {
     display: inline-block;
-    margin: 0.5cm;
+    margin: 0.20cm;
     width: 5.5cm;
     height: 8.5cm;
 }

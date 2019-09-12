@@ -4,7 +4,6 @@ class QRGenerator {
 
         var wrapperHTML = `
             <div class="header">
-                <i class="icon fire-mono"></i>
                 FIRE<br/>
                 (Formative Interaction and Rapid Evaluation)</p>
             </div>

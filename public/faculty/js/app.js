@@ -27,16 +27,12 @@ var app = new Vue({
                     waver: null,
                     roomViewer: null,
                     students: new Map(),
-                    sessionList: [],
                     currentTime: Date.now(),
+                    sessionList: [],
                     timer: null
                 }
             },
             computed: {
-                computedCurrentTime () {
-                    var diff = new Date(this.currentTime - this.session.start);
-                    return this.pad(diff.getUTCHours(), 2) + ':' + this.pad(diff.getUTCMinutes(),2) + ':' + this.pad(diff.getUTCSeconds(),2);
-                },
                 computedDoubtCount () {
                     return this.session.events.filter((v) => v.type === "doubt").length;
                 },
@@ -51,6 +47,10 @@ var app = new Vue({
                 }
             },
             methods: {
+                formattedCurrentTime () {
+                    var diff = new Date(this.currentTime - this.session.start);
+                    return this.pad(diff.getUTCHours(), 2) + ':' + this.pad(diff.getUTCMinutes(),2) + ':' + this.pad(diff.getUTCSeconds(),2);
+                },
                 activeDeviceCount () {
                     var count = 0;
                     for([key,value] of this.students) {
@@ -152,6 +152,11 @@ var app = new Vue({
                     }
 
                     if(event.type === "join") {
+                        console.log(event);
+                        if(this.students.has(event.number) && this.students.get(event.number).active) {
+                            var seat = this.students.get(event.number).seat;
+                            this.roomViewer.SetStatus(seat.row, seat.col, 1);
+                        }
                         this.students.set(event.number, { number: event.number, seat: event.seat, active: true });
                         console.log(this.students);
                         this.roomViewer.SetStatus(event.seat.row, event.seat.col, 2);
@@ -192,6 +197,7 @@ var app = new Vue({
                 CentralBus.$emit('update.courses');
                 CentralBus.$emit('update.rooms');
                 CentralBus.$on('set.token', (token) => {
+                    this.session.start = Date.now();
                     this.session.sessionToken = token;
                     this.session.recorder.ondataavailable = (e) => {
                         var data = new FormData();

@@ -6,6 +6,7 @@ const compression = require('compression')
 const multer = require('multer')
 const uniqid = require('uniqid')
 const path = require('path')
+const mime = require('mime-types')
 const Logger = require('./lib/Logger.class')
 const DatabaseObject = require('./lib/DatabaseObject.class')
 const ClientList = require('./lib/ClientList.class')
@@ -1098,7 +1099,6 @@ messageController.AddControl('join.session', {
         var qrTest = QRValidator.test(message.data.qrcode)
         if(id) {
             if(qrTest) {
-                console.log("HERE");
                 var records = clients.student.GetRecord(id)
                 var qrData = message.data.qrcode.split(";");
                 var room_code = qrData[0];
@@ -1138,6 +1138,14 @@ messageController.AddControl('join.session', {
                                     facultyConnection: facultyConnection
                                 }
 
+                                var faculty = clients.faculty.GetRecord(sessionObject.session.faculty);
+                                var facultyRecord = {
+                                    username: faculty.username,
+                                    name: faculty.name,
+                                    designation: faculty.designation,
+                                    dp: faculty.dp
+                                };
+
                                 MessageController.SendMessage({
                                     connection: connection,
                                     message: {
@@ -1145,7 +1153,7 @@ messageController.AddControl('join.session', {
                                             start: sessionObject.session.date.start.UTCTimestampMillis,
                                             room: sessionObject.session.room,
                                             course: sessionObject.session.course,
-                                            faculty: sessionObject.session.faculty
+                                            faculty: facultyRecord
                                         }
                                     },
                                     template: message
@@ -1342,11 +1350,16 @@ database.Init().then(() => {
                 res.writeHead(200, {
                     'Content-Type': 'audio/ogg',
                     'Content-Length': stat.size
-                })
+                });
 
                 var stream = resourceManager.GetResourceReadStream(id)
                 stream.pipe(res)
 
+            } else if(action === 'raw') {
+                var respath = path.join(__dirname, resourceManager.base + id);
+                res.setHeader("Content-Type", mime.contentType(resource.filename));
+                res.setHeader("Content-Dispositon","attachment; filename=" + resource.filename);
+                res.sendFile(respath);
             } else
                 res.download(resourceManager.base + id, resource.filename)
         }
