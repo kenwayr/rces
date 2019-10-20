@@ -11,3 +11,15 @@
 [ Tue Aug 20 2019 21:18:26 GMT+0530 (India Standard Time) ] => TypeError [ERR_INVALID_CALLBACK]: Callback must be a function
 [ Tue Aug 20 2019 21:20:24 GMT+0530 (India Standard Time) ] => TypeError [ERR_INVALID_ARG_TYPE]: The "fd" argument must be of type number. Received type undefined
 [ Tue Aug 20 2019 21:21:26 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'SetRecording' of undefined
+[ Sat Oct 19 2019 23:08:02 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'validations' of undefined
+[ Sat Oct 19 2019 23:09:31 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'validations' of undefined
+[ Sat Oct 19 2019 23:23:30 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'reduce' of undefined
+[ Sat Oct 19 2019 23:26:05 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'reduce' of undefined
+[ Sat Oct 19 2019 23:27:05 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'reduce' of undefined
+[ Sun Oct 20 2019 12:29:20 GMT+0530 (India Standard Time) ] => ReferenceError: QRValidator is not defined
+[ Sun Oct 20 2019 12:29:33 GMT+0530 (India Standard Time) ] => ReferenceError: QRValidator is not defined
+[ Sun Oct 20 2019 12:30:05 GMT+0530 (India Standard Time) ] => ReferenceError: QRValidator is not defined
+[ Sun Oct 20 2019 12:30:14 GMT+0530 (India Standard Time) ] => ReferenceError: QRValidator is not defined
+[ Sun Oct 20 2019 12:30:48 GMT+0530 (India Standard Time) ] => ReferenceError: QRValidator is not defined
+[ Sun Oct 20 2019 12:30:57 GMT+0530 (India Standard Time) ] => ReferenceError: QRValidator is not defined
+[ Sun Oct 20 2019 12:31:16 GMT+0530 (India Standard Time) ] => ReferenceError: QRValidator is not defined

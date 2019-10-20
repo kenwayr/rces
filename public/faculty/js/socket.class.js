@@ -94,6 +94,27 @@ class Socket {
         }, callback);
     }
 
+    StartTest(data, callback = (d) => {}) {
+        this._Send({
+            tag: "start.test",
+            data: data
+        }, callback);
+    }
+
+    StartTestExam(data, callback = (d) => {}) {
+        this._Send({
+            tag: "distribute.sets",
+            data: data
+        }, callback);
+    }
+
+    StopTest(data, callback = (d) => {}) {
+        this._Send({
+            tag: "stop.test",
+            data: data
+        }, callback);
+    }
+
     On(tag, callback) {
         if(this.callbacks.has(tag))
             this.callbacks.get(tag).push(callback);

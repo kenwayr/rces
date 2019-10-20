@@ -73,85 +73,131 @@
     <div id="modal"></div>
 
 <script type="text/x-template" id="dashboard-template">
-    <div>
-        <div v-if="!session.active" class="card pure-u-1">
-            <header>
-                <i class="icon dashboard alt"></i>
-                <span>Dashboard</span>
-            </header>
-            <div class="pure-form pure-form-stacked">
-                <div class="pure-control-group">
-                    <label>Course</label>
-                    <select v-model="session.course" v-on:click="LoadCourses">
-                        <option disabled selected value>Select a course</option>
-                        <option v-for="(course, index) in records.courses" v-bind:value="course">{{course.title}} ({{course.code}})</option>
-                    </select>
+    <div class="pure-g">
+        <div v-if="!(session.active || crowdtest.active)" class="pure-u-1-2">
+            <div class="card pure-u-1-1">
+                <header>
+                    <i class="icon dashboard alt"></i>
+                    <span>Classroom Session Module</span>
+                </header>
+                <div class="pure-form pure-form-stacked">
+                    <div class="pure-control-group">
+                        <label>Course</label>
+                        <select v-model="session.course" v-on:click="LoadCourses">
+                            <option disabled selected value>Select a course</option>
+                            <option v-for="(course, index) in records.courses" v-bind:value="course">{{course.title}} ({{course.code}})</option>
+                        </select>
+                    </div>
+                    <div class="pure-control-group">
+                        <label>Room</label>
+                        <select v-model="session.room" v-on:click="LoadRooms">
+                            <option disabled selected value>Select a room</option>
+                            <option v-for="room in records.rooms" v-bind:value="room" v-bind:disabled="room.usage.inUse">{{room.code}} ({{room.capacity}})</option>
+                        </select>
+                    </div>
+                    <div class="pure-controls">
+                        <button class="pure-button pure-button-primary" v-on:click="StartSession">Start</button>
+                    </div>
                 </div>
-                <div class="pure-control-group">
-                    <label>Room</label>
-                    <select v-model="session.room" v-on:click="LoadRooms">
-                        <option disabled selected value>Select a room</option>
-                        <option v-for="room in records.rooms" v-bind:value="room" v-bind:disabled="room.usage.inUse">{{room.code}} ({{room.capacity}})</option>
-                    </select>
-                </div>
-                <div class="pure-controls">
-                    <button class="pure-button pure-button-primary" v-on:click="StartSession">Start</button>
-                </div>
-            </div>
-            <div>
-                <ul class="session-list">
-                    <li class="session" v-for="session in sessionList">
-                        <div class="pure-g">
-                            <div class="session-date pure-u-1-2">
-                                {{format(session.date.start)}}
+                <div>
+                    <ul class="session-list">
+                        <li class="session" v-for="session in sessionList">
+                            <div class="pure-g">
+                                <div class="session-date pure-u-1-2">
+                                    {{format(session.date.start)}}
+                                </div>
+                                <div class="session-room pure-u-1-2">
+                                    Room {{session.room.code}}
+                                </div>
                             </div>
-                            <div class="session-room pure-u-1-2">
-                                Room {{session.room.code}}
+                            <hr>
+                            <div>
+                                <p>{{session.course.title}} ({{session.course.code}})</p>
+                                <p><b>Duration</b> {{format(session.duration)}}</p>
                             </div>
-                        </div>
-                        <hr>
-                        <div>
-                            <p>{{session.course.title}} ({{session.course.code}})</p>
-                            <p><b>Duration</b> {{format(session.duration)}}</p>
-                        </div>
-                        <div>
-                            <b>Export</b>
-                            <button class="pure-button pure-button-primary" v-on:click="Export(session)">Data</button>
-                            <a download v-bind:href="'/resource?id='+session.recording" class="pure-button pure-button-secondary">Recording</a>
-                        </div>
-                    </li>
-                </ul>
+                            <div>
+                                <b>Export</b>
+                                <button class="pure-button pure-button-primary" v-on:click="Export(session)">Data</button>
+                                <a download v-bind:href="'/resource?id='+session.recording" class="pure-button pure-button-secondary">Recording</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
-        <div v-if="session.active" class="card">
-            <header>
-                <i class="icon dashboard alt"></i>
-                <span>Session</span>
-            </header>
-            <div>
-                <p> <b>Room: </b> {{session.room.code}} </p>
-                <p> <b>Course: </b> {{session.course.title}} ({{session.course.code}})  </p>
-                <p> <b>Time: </b> {{ formattedCurrentTime() }}</p>
-            </div>
-            <div>
-                <canvas ref="WaveCanvas" width="720" height="220"></canvas>
-                <button class="pure-button pure-button-secondary" v-on:click="ToggleWaveState()">{{session.toggleButtonText}}</button>
-            </div>
-            <div class="pure-g">
-                <div class="pure-u-1-3">
-                    <p>Attendance Count: {{students.size}}</p>
-                    <p>Active Count: {{activeDeviceCount()}}</p>
-                    <p>Doubts: {{computedDoubtCount}}</p>
-                    <p>Repeats: {{computedRepeatCount}}</p>
-                    <p>Explains: {{computedExplainCount}}</p>
-                    <p>Clears: {{computedClearCount}}</p>
-                </div>
-                <div class="pure-u-2-3">
-                    <canvas ref="RoomView" style="display: block; margin: 0 auto;"></canvas>
-                    <img src="../common/assets/icons/laptop.svg" style="width: 30px; display: block; margin: 0 auto;">
+        <div v-if="!(session.active || crowdtest.active)" class="pure-u-1-2">
+            <div class="card pure-u-1-1">
+                <header>
+                    <i class="icon records alt"></i>
+                    <span>Crowdsourced Test Module</span>
+                </header>
+                <div class="pure-form pure-form-stacked">
+                    <div class="pure-control-group">
+                        <label>Course</label>
+                        <select v-model="crowdtest.course" v-on:click="LoadCourses">
+                            <option disabled selected value>Select a course</option>
+                            <option v-for="(course, index) in records.courses" v-bind:value="course">{{course.title}} ({{course.code}})</option>
+                        </select>
+                    </div>
+                    <div class="pure-control-group">
+                        <label>Room</label>
+                        <select v-model="crowdtest.room" v-on:click="LoadRooms">
+                            <option disabled selected value>Select a room</option>
+                            <option v-for="room in records.rooms" v-bind:value="room" v-bind:disabled="room.usage.inUse">{{room.code}} ({{room.capacity}})</option>
+                        </select>
+                    </div>
+                    <div class="pure-controls">
+                        <button class="pure-button pure-button-primary" v-on:click="StartTest">Start</button>
+                    </div>
                 </div>
             </div>
-            <button class="pure-button pure-button-primary" v-on:click="EndSession">End</button>
+        </div>
+        <div v-if="session.active" class="pure-u-1-1">
+            <div class="card pure-u-1-1">
+                <header>
+                    <i class="icon dashboard alt"></i>
+                    <span>Session</span>
+                </header>
+                <div>
+                    <p> <b>Room: </b> {{session.room.code}} </p>
+                    <p> <b>Course: </b> {{session.course.title}} ({{session.course.code}})  </p>
+                    <p> <b>Time: </b> {{ formattedCurrentTime() }}</p>
+                </div>
+                <div>
+                    <canvas ref="WaveCanvas" width="720" height="220"></canvas>
+                    <button class="pure-button pure-button-secondary" v-on:click="ToggleWaveState()">{{session.toggleButtonText}}</button>
+                </div>
+                <div class="pure-g">
+                    <div class="pure-u-1-3">
+                        <p>Attendance Count: {{students.size}}</p>
+                        <p>Active Count: {{activeDeviceCount()}}</p>
+                        <p>Doubts: {{computedDoubtCount}}</p>
+                        <p>Repeats: {{computedRepeatCount}}</p>
+                        <p>Explains: {{computedExplainCount}}</p>
+                        <p>Clears: {{computedClearCount}}</p>
+                    </div>
+                    <div class="pure-u-2-3">
+                        <canvas ref="RoomView" style="display: block; margin: 0 auto;"></canvas>
+                        <img src="../common/assets/icons/laptop.svg" style="width: 30px; display: block; margin: 0 auto;">
+                    </div>
+                </div>
+                <button class="pure-button pure-button-primary" v-on:click="EndSession">End</button>
+            </div>
+        </div>
+        <div v-if="crowdtest.active" class="pure-u-1-1">
+            <div class="card pure-u-1-1">
+                <header>
+                    <i class="icon dashboard alt"></i>
+                    <span>Crowdsourced Test</span>
+                </header>
+                <div>
+                    <p> <b>Room: </b> {{crowdtest.room.code}} </p>
+                    <p> <b>Course: </b> {{crowdtest.course.title}} ({{crowdtest.course.code}})  </p>
+                    <p> <b>Time: </b> {{ formattedCurrentTime() }}</p>
+                </div>
+                <button v-if="!crowdtest.distributed" class="pure-button pure-button-primary" v-on:click="DistributeTestSets">Distribute Questions</button>
+                <button class="pure-button pure-button-primary" v-on:click="EndTest">End Test</button>
+            </div>
         </div>
     </div>
 </script>

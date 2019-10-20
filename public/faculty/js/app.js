@@ -24,6 +24,16 @@ var app = new Vue({
                         sessionToken: null,
                         recorder: null
                     },
+                    crowdtest: {
+                        course: null,
+                        room: null,
+                        start: null,
+                        end: null,
+                        active: false,
+                        distributed: false,
+                        testToken: null,
+                        report: null
+                    },
                     waver: null,
                     roomViewer: null,
                     students: new Map(),
@@ -48,7 +58,13 @@ var app = new Vue({
             },
             methods: {
                 formattedCurrentTime () {
-                    var diff = new Date(this.currentTime - this.session.start);
+                    var diff;
+                    if(this.session.active)
+                        diff = new Date(this.currentTime - this.session.start);
+                    else if(this.crowdtest.active)
+                        diff = new Date(this.currentTime - this.crowdtest.start);
+                    else
+                        diff = 0;
                     return this.pad(diff.getUTCHours(), 2) + ':' + this.pad(diff.getUTCMinutes(),2) + ':' + this.pad(diff.getUTCSeconds(),2);
                 },
                 activeDeviceCount () {
@@ -81,7 +97,6 @@ var app = new Vue({
                     navigator.mediaDevices.getUserMedia({audio: true, video: false}).then((stream) => {
                         CentralBus.$emit('start.session', { course: this.session.course, room: this.session.room });
                         this.session.recorder = new MediaRecorder(stream);
-                        this.session.start = Date.now();
                         this.currentTime = Date.now();
                         this.timer = setInterval(() => {
                             this.currentTime = Date.now();
@@ -118,10 +133,30 @@ var app = new Vue({
                     if(this.session.sessionToken !== null)
                         CentralBus.$emit('stop.session', {});
                     this.session.recorder.stop();
-                    this.GetSesssions();
+                    this.GetSessions();
                 },
-                GetSesssions () {
+                GetSessions () {
                     CentralBus.$emit('get.sessions');
+                },
+                StartTest() {
+                    CentralBus.$emit('start.test', { course: this.crowdtest.course, room: this.crowdtest.room });
+                    this.crowdtest.active = true;
+                    this.crowdtest.start = Date.now();
+                    this.currentTime = Date.now();
+                    this.timer = setInterval(() => {
+                        this.currentTime = Date.now();
+                    }, 1000);
+                },
+                DistributeTestSets() {
+                    CentralBus.$emit('start.test.exam', {});
+                    this.crowdtest.distributed = true;
+                },
+                EndTest() {
+                    clearInterval(this.timer);
+                    this.crowdtest.active = false;
+                    this.crowdtest.distributed = false;
+                    this.crowdtest.end = Date.now();
+                    CentralBus.$emit('stop.test', {});
                 },
                 Export(session) {
                     var studentData = DataManager.ExtractStudentData(session);
@@ -211,9 +246,12 @@ var app = new Vue({
                     this.sessionList = sessions;
                 });
                 CentralBus.$on('login.done', () => {
-                    this.GetSesssions();
+                    this.GetSessions();
                 });
-                this.GetSesssions();
+                CentralBus.$on("set.test.token", (token) => {
+                    this.crowdtest.testToken = token;
+                });
+                this.GetSessions();
             }
         },
         courseManager: {
@@ -259,7 +297,7 @@ var app = new Vue({
                 };
             },
             methods: {
-                GetSesssions () {
+                GetSessions () {
                     CentralBus.$emit('get.sessions');
                 },
                 pad(n, width, z) {
@@ -555,7 +593,7 @@ var app = new Vue({
                 CentralBus.$on('set.sessions', (sessions) => {
                     this.sessions = sessions;
                 });
-                this.GetSesssions();
+                this.GetSessions();
             }
         },
         settings: {
@@ -773,6 +811,23 @@ var app = new Vue({
                 console.log(message);
                 CentralBus.$emit('set.sessions', message.data);
             })
+        });
+
+        CentralBus.$on('start.test', (data) => {
+            this.socket.StartTest(data, (message) => {
+                if(message.data.token)
+                    CentralBus.$emit('set.test.token', message.data.token);
+            });
+        });
+
+        CentralBus.$on('start.test.exam', (data) => {
+            this.socket.StartTestExam(data, (message) => {
+                console.log(message);
+            });
+        });
+
+        CentralBus.$on('stop.test', (data) => {
+            this.socket.StopTest(data);
         });
 
         CentralBus.$on('get.me', () => {
