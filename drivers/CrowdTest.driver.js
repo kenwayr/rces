@@ -1,4 +1,5 @@
 const MessageController = require('../lib/MessageController.class');
+const QRValidator = new RegExp(/^[^;]+;\d+;\d+$/);
 module.exports = class ClassroomSessionDriver {
     run(messageController, { testManager, clients, rooms }) {
         messageController.AddControl('start.test', {
@@ -124,7 +125,7 @@ module.exports = class ClassroomSessionDriver {
                                                 tag: "event.student",
                                                 data: {
                                                     type: "join",
-                                                    number: records.number,
+                                                    number: record.number,
                                                     seat: {
                                                         row: qrData[1],
                                                         col: qrData[2]
@@ -220,8 +221,11 @@ module.exports = class ClassroomSessionDriver {
                     var record = clients.student.GetRecord(id);
                     if(record.test) {
                         var testObject = testManager.GetTest(record.test.token);
-                        for(var i=0; i < message.data.questions.length; i++)
-                            testObject.bank.AddQuestion(message.data.questions[i]);
+                        for(var i=0; i < message.data.questions.length; i++) {
+                            var question = message.data.questions[i];
+                            question['author'] = id;
+                            testObject.bank.AddQuestion(question);
+                        }
                         MessageController.SendMessage({
                             connection: connection,
                             message: {
@@ -286,9 +290,23 @@ module.exports = class ClassroomSessionDriver {
                     if(record.test && record.test.active === true) {
                         var testObject = testManager.GetTest(record.test.token);
                         var report = await testObject.bank.GenerateSets();
-                        var sets = testObject.bank.GetSets();
                         
-                        console.log(sets);
+                        
+                        var sets = testObject.bank.GetSets();
+
+                        sets.forEach((set, client_id) => {
+                            var connection = clients.student.GetConnection(client_id);
+                            MessageController.SendMessage({
+                                connection: connection,
+                                message: {
+                                    tag: "questions",
+                                    data: {
+                                        questions: [...set.values()]
+                                    }
+                                },
+                                template: message
+                            });
+                        });
                         
                         MessageController.SendMessage({
                             connection: connection,

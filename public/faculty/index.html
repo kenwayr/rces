@@ -26,7 +26,7 @@
                 <li class="header"> <i class="icon fire"></i> <span class="title">FIRE</span> </li>
                 <li class="header">
                     <img v-bind:src="dynamicData.self.dp ? ('../resource?id=' + dynamicData.self.dp) : '../common/assets/icons/account.svg'" width="50" height="50" style="display: inline-block; vertical-align: middle; border-radius: 200px;">
-                    <span class="title" style="font-size: 10pt;">Welcome, {{dynamicData.self.username}}</span>
+                    <span class="title" style="font-size: 10pt;">@{{dynamicData.self.username}}</span>
                 </li>
                 <li class="item" v-for="tab in tabs">
                     <div class="holder" v-on:click="tabClick(tab)">

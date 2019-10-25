@@ -136,6 +136,7 @@ class RoomView {
     constructor(target, {occupiedSrc, emptySrc, cellWidth=25, cellHeight=25, cellPadding=5}) {
         this.canvas = target;
         this.context = target.getContext("2d");
+        this.boundaries = target.getBoundingClientRect();
         this.matrix = [];
         this.seats = {
             occupied: {
@@ -159,6 +160,16 @@ class RoomView {
     }
     Init() {
         return new Promise((resolve, reject) => {
+            this.canvas.addEventListener('mousedown', (e) => {
+                var clientX = e.clientX - this.boundaries.left;
+                var clientY = e.clientY - this.boundaries.top;
+                // find seat at position and trigger details
+                var x = clientX / (this.config.cellWidth + this.config.cellPadding);
+                var y = clientY / (this.config.cellHeight + this.config.cellPadding);
+                var r = Math.floor(y);
+                var c = Math.floor(x);
+            });
+
             this.seats.occupied.image.onload = (e) => {
                 this.seats.occupied.loaded = true;
                 if(this.seats.empty.loaded)
