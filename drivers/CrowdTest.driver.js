@@ -59,10 +59,10 @@ module.exports = class ClassroomSessionDriver {
                 if(id) {
                     var record = clients.faculty.GetRecord(id)
                     if(record.test && record.test.active === true) {
+                        var testData = null;
                         if(testManager.Has(record.test.token)) {
-                            var data = testManager.EndTest(record.test.token);
+                            testData = testManager.EndTest(record.test.token);
                             rooms.UnsetSession(record.test.room_code);
-                            console.log(rooms.GetRooms());
                         }
                         record.test.active = false;
                         clients.faculty.ChangeRecord(id, record)
@@ -82,8 +82,10 @@ module.exports = class ClassroomSessionDriver {
                             MessageController.SendMessage({
                                 connection: clients.student.GetConnection(connectedStudents[i].number),
                                 message: {
-                                    tag: "stop.session",
-                                    data: {}
+                                    tag: "stop.test",
+                                    data: {
+                                        score: testData !== null ? testData.data.get(connectedStudents[i].number) : 0
+                                    }
                                 },
                                 template: message
                             });
@@ -257,12 +259,12 @@ module.exports = class ClassroomSessionDriver {
                     var record = clients.student.GetRecord(id);
                     if(record.test) {
                         var testObject = testManager.GetTest(record.test.token);
-                        testObject.bank.SubmitAnswer(id, message.data.answer);
+                        var status = testObject.bank.SubmitAnswer(id, message.data.answer);
                         MessageController.SendMessage({
                             connection: connection,
                             message: {
                                 data: {
-                                    status: true
+                                    status: status
                                 }
                             },
                             template: message

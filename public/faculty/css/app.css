@@ -103,6 +103,7 @@ body {
     position: relative;
     padding: 10px;
     width: 100%;
+    overflow-y: auto;
 }
 .notification-box {
     display: block;
@@ -305,4 +306,42 @@ body {
     border-radius: 4px;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
     background-color: rgb(66, 184, 221) !important; /* this is a light blue */
+}
+/*STATISTICS*/
+.stat, .info-box {
+    display: inline-block;
+    position: relative;
+    margin: 5px;
+    padding: 5px;
+    padding-bottom: 0;
+    border: 1px solid #000;
+    border-radius: 8px;
+    font-size: 10pt;
+    min-width: 80px;
+    background-color: #fff;
+    font-family: monospace;
+}
+.stat > i, .info {
+    display: block;
+}
+.stat > hr {
+    max-width: 80%;
+    border-top: 1px solid #000;
+    border-radius: 8px;
+}
+.stat > .counter {
+    font-size: 12pt;
+    text-align: center;
+}
+.stat.compact > .counter {
+    font-size: inherit;
+}
+.stat.compact {
+    margin: 0 !important;
+    font-size: 10pt !important;
+    padding: 2px;
+}
+.info {
+    font-size: 12pt;
+    padding: 5px;
 }

@@ -40,3 +40,15 @@
 [ Thu Oct 24 2019 15:37:32 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'session' of undefined
 [ Thu Oct 24 2019 17:28:12 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'session' of undefined
 [ Fri Oct 25 2019 18:50:18 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'reduce' of undefined
+[ Sat Oct 26 2019 22:35:25 GMT+0530 (India Standard Time) ] => SyntaxError: Unexpected token q in JSON at position 37
+[ Sat Oct 26 2019 22:55:17 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'session' of undefined
+[ Sun Oct 27 2019 13:41:57 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'session' of undefined
+[ Mon Oct 28 2019 01:21:10 GMT+0530 (India Standard Time) ] => ReferenceError: testData is not defined
+[ Mon Oct 28 2019 11:10:42 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'session' of undefined
+[ Mon Oct 28 2019 11:10:56 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'session' of undefined
+[ Mon Oct 28 2019 11:11:36 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'session' of undefined
+[ Mon Oct 28 2019 11:11:43 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'session' of undefined
+[ Mon Oct 28 2019 11:11:43 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'session' of undefined
+[ Mon Oct 28 2019 11:11:55 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'session' of undefined
+[ Tue Oct 29 2019 01:25:33 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'code' of null
+[ Tue Oct 29 2019 01:54:27 GMT+0530 (India Standard Time) ] => TypeError: Cannot read property 'faculty' of undefined

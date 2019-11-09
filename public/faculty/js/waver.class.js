@@ -82,6 +82,19 @@ class Waver {
         this.regions.push(region);
     }
 
+    removeRegion({id, number}) {
+        if(id) {
+            var index = this.regions.findIndex((v) => v.id === id);
+            if(index !== -1)
+                this.regions.splice(index, 1);
+            return true;
+        } else if(number) {
+            this.regions = this.regions.filter((v) => v.number !== number);
+            return true;
+        }
+        return false;
+    }
+
     render() {
         this.animFrame = requestAnimationFrame(this.render.bind(this));
         this.CurrentFrameTimestamp = Date.now();

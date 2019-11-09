@@ -1,4 +1,5 @@
 const MessageController = require('../lib/MessageController.class');
+const uniqid = require('uniqid');
 const QRValidator = new RegExp(/^[^;]+;\d+;\d+$/);
 module.exports = class ClassroomSessionDriver {
     run(messageController, { sessionManager, resourceManager, clients, rooms, database }) {
@@ -266,6 +267,8 @@ module.exports = class ClassroomSessionDriver {
                     var records = clients.student.GetRecord(id)
                     message.data.number = records.number
                     if(records.session) {
+                        if(!message.data.id)
+                            message.data.id = uniqid();
                         sessionManager.AddEvent(records.session.token, message.data);
                         MessageController.SendMessage({
                             connection: records.session.facultyConnection,
@@ -276,7 +279,8 @@ module.exports = class ClassroomSessionDriver {
                             connection: connection,
                             message: {
                                 data: {
-                                    logged: true
+                                    logged: true,
+                                    id: message.data.id
                                 }
                             },
                             template: message

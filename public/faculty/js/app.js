@@ -22,7 +22,8 @@ var app = new Vue({
                         active: false,
                         toggleButtonText: 'PAUSE',
                         sessionToken: null,
-                        recorder: null
+                        recorder: null,
+                        selectedStudentRecord: null
                     },
                     crowdtest: {
                         course: null,
@@ -57,6 +58,10 @@ var app = new Vue({
                 }
             },
             methods: {
+                formattedTime (time) {
+                    var diff = new Date(time);
+                    return this.pad(diff.getUTCHours(), 2) + ':' + this.pad(diff.getUTCMinutes(),2) + ':' + this.pad(diff.getUTCSeconds(),2);
+                },
                 formattedCurrentTime () {
                     var diff;
                     if(this.session.active)
@@ -106,7 +111,27 @@ var app = new Vue({
                         this.session.recorder.start(50);
                         this.roomViewer = new RoomView(this.$refs.RoomView, {
                             occupiedSrc: '../common/assets/icons/device.svg',
-                            emptySrc: '../common/assets/icons/seat.svg'
+                            emptySrc: '../common/assets/icons/seat.svg',
+                            mouseEventCallback: (r,c) => {
+                                r = (this.session.room.seat_matrix.length-1) - r;
+                                var records = [...this.students.values()];
+                                var idx = records.findIndex((v) => v.seat.row == r && v.seat.col == c);
+                                if(idx !== -1) {
+                                    var record = records[idx];
+                                    console.log(record);
+                                    this.session.selectedStudentRecord = {
+                                        number: record.number,
+                                        time: this.currentTime - this.session.events.find((v) => v.number === record.number && v.type === "join").timestamp,
+                                        doubt: this.session.events.filter((v) => v.number === record.number && v.type === "doubt").length,
+                                        explain: this.session.events.filter((v) => v.number === record.number && v.type === "explain").length,
+                                        repeat: this.session.events.filter((v) => v.number === record.number && v.type === "repeat").length,
+                                        clear: this.session.events.filter((v) => v.number === record.number && v.type === "clear").length
+                                    };
+                                } else {
+                                    console.log('No one sits here.');
+                                    this.session.selectedStudentRecord = null;
+                                }
+                            }
                         });
                         this.roomViewer.Init().then(() => {
                             this.roomViewer.ImportSeatMatrix(this.session.room.seat_matrix);
@@ -125,6 +150,11 @@ var app = new Vue({
                 AddRegion(region) {
                     if(this.session.active) {
                         this.waver.addRegion(region);
+                    }
+                },
+                RemoveRegion({id, number}) {
+                    if(this.session.active) {
+                        this.waver.removeRegion({id, number});
                     }
                 },
                 EndSession () {
@@ -172,18 +202,29 @@ var app = new Vue({
             },
             created () {
                 CentralBus.$on('event.student', (event) => {
+                    
                     this.session.events.push(event);
+                    
                     var colors = {
                         doubt: 'rgba(0, 0, 255, 0.6)',
                         repeat: 'rgba(0, 255, 0, 0.6)',
                         explain: 'rgba(255, 0, 0, 0.6)'
                     };
+
                     if(colors.hasOwnProperty(event.type)) {
                         var region = {
+                            id: event.id,
                             fillStyle: colors[event.type],
                             timestamp: event.timestamp || Date.now()
                         };
                         this.AddRegion(region);
+                    } else if(event.type === "clear") {
+                        if(event.action === "selective") {
+                            this.RemoveRegion({id: id});
+                        }
+                        else {
+                            this.RemoveRegion({number: event.number});
+                        }
                     }
 
                     if(event.type === "join") {
@@ -224,7 +265,9 @@ var app = new Vue({
                     }
                     else if(event.type === "clear") {
                         var record = this.students.get(event.number);
-                        this.roomViewer.SetStatus(record.seat.row, record.seat.col, 2);
+                        if(event.action === "all") {
+                            this.roomViewer.SetStatus(record.seat.row, record.seat.col, 2);
+                        }
                     }
                 });
             },

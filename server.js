@@ -55,7 +55,7 @@ const database = new DatabaseObject({
     hostname: 'localhost',
     port: 27017,
     database: 'rces'
-})
+});
 
 messageController.AddDriver(BootstrapDriver, {
     sessionManager: sessionManager,
@@ -63,7 +63,8 @@ messageController.AddDriver(BootstrapDriver, {
     clients: clients,
     rooms: rooms,
     courses: courses,
-    database: database
+    database: database,
+    testManager: testManager
 });
 messageController.AddDriver(ClassroomSessionDriver, { 
     sessionManager: sessionManager,

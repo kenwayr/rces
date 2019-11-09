@@ -133,7 +133,7 @@ class RoomEditor {
 }
 
 class RoomView {
-    constructor(target, {occupiedSrc, emptySrc, cellWidth=25, cellHeight=25, cellPadding=5}) {
+    constructor(target, {occupiedSrc, emptySrc, cellWidth=25, cellHeight=25, cellPadding=5, mouseEventCallback = (r,c) => {} }) {
         this.canvas = target;
         this.context = target.getContext("2d");
         this.boundaries = target.getBoundingClientRect();
@@ -157,17 +157,20 @@ class RoomView {
             contextWidth: target.width,
             contextHeight: target.height
         };
+        this.mouseEventCallback = mouseEventCallback;
     }
     Init() {
         return new Promise((resolve, reject) => {
             this.canvas.addEventListener('mousedown', (e) => {
-                var clientX = e.clientX - this.boundaries.left;
-                var clientY = e.clientY - this.boundaries.top;
+                var boundaries = this.canvas.getBoundingClientRect();
+                var clientX = e.pageX - boundaries.left;
+                var clientY = e.pageY - boundaries.top;
                 // find seat at position and trigger details
                 var x = clientX / (this.config.cellWidth + this.config.cellPadding);
                 var y = clientY / (this.config.cellHeight + this.config.cellPadding);
                 var r = Math.floor(y);
                 var c = Math.floor(x);
+                this.mouseEventCallback(r,c);
             });
 
             this.seats.occupied.image.onload = (e) => {

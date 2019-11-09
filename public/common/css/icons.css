@@ -72,3 +72,30 @@
 .icon.fire-mono {
     background-image: url(../assets/icons/fire-mono.svg);
 }
+.icon.users {
+    background-image: url(../assets/icons/users.svg);
+}
+.icon.active.users {
+    background-image: url(../assets/icons/users-active.svg);
+}
+.icon.doubt {
+    background-image: url(../assets/icons/doubt.svg);
+}
+.icon.repeat {
+    background-image: url(../assets/icons/repeat.svg);
+}
+.icon.explain {
+    background-image: url(../assets/icons/explain.svg);
+}
+.icon.clear {
+    background-image: url(../assets/icons/clear.svg);
+}
+.icon.user {
+    background-image: url(../assets/icons/user.svg);
+}
+.icon.clock {
+    background-image: url(../assets/icons/clock.svg);
+}
+.icon.sim {
+    background-image: url(../assets/icons/sim.svg);
+}

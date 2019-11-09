@@ -1,6 +1,6 @@
 const MessageController = require('../lib/MessageController.class');
 module.exports = class BootstrapDriver {
-    run(messageController, { resourceManager, clients, rooms, courses, database }) {
+    run(messageController, { sessionManager, testManager, resourceManager, clients, rooms, courses, database }) {
         messageController.AddControl("login", {
             callback: (connection, message) => {
                 if(message.data.type !== "student") {
@@ -890,7 +890,8 @@ module.exports = class BootstrapDriver {
                     })
                 }
                 else if(id = clients.faculty.GetIdentifier(connection)) {
-                    var account = clients.faculty.GetRecord(id)
+                    var records = clients.faculty.GetRecord(id)
+                    
                     MessageController.Broadcast({
                         list: clients.admin.GetBroadcastList(),
                         message: {
@@ -901,6 +902,66 @@ module.exports = class BootstrapDriver {
                         },
                         template: message
                     })
+
+                    if(records.session && records.session.active === true) {
+                        if(sessionManager.Has(records.session.token)) {
+                            var data = sessionManager.EndSession(records.session.token)
+                            rooms.UnsetSession(records.session.room_code)
+                            var res = database.SaveSession(data)
+                        }
+                        records.session.active = false;
+                        clients.faculty.ChangeRecord(id, records)
+                        MessageController.SendMessage({
+                            connection: connection,
+                            message: {
+                                data: {
+                                    stopped: true
+                                }
+                            },
+                            template: message
+                        })
+                        var connectedStudents = clients.student.GetRecords().filter((v) => {
+                            return v.session && v.session.facultyConnection.id === connection.id;
+                        })
+                        for(var i=0; i < connectedStudents.length; i++)
+                            MessageController.SendMessage({
+                                connection: clients.student.GetConnection(connectedStudents[i].number),
+                                message: {
+                                    tag: "stop.session",
+                                    data: {}
+                                },
+                                template: {}
+                            })
+                    }
+                    else if(records.test && records.test.active === true) {
+                        if(testManager.Has(records.test.token)) {
+                            var data = testManager.EndTest(records.test.token);
+                            rooms.UnsetSession(records.test.room_code);
+                        }
+                        records.test.active = false;
+                        clients.faculty.ChangeRecord(id, records)
+                        MessageController.SendMessage({
+                            connection: connection,
+                            message: {
+                                data: {
+                                    stopped: true
+                                }
+                            },
+                            template: message
+                        })
+                        var connectedStudents = clients.student.GetRecords().filter((v) => {
+                            return v.test && v.test.facultyConnection.id === connection.id;
+                        })
+                        for(var i=0; i < connectedStudents.length; i++)
+                            MessageController.SendMessage({
+                                connection: clients.student.GetConnection(connectedStudents[i].number),
+                                message: {
+                                    tag: "stop.test",
+                                    data: {}
+                                },
+                                template: message
+                            });
+                    }
                 }
                 else if(id = clients.student.GetIdentifier(connection)) {
                     var account = clients.student.GetRecord(id)
